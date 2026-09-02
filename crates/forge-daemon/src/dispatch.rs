@@ -25,13 +25,21 @@ pub const LIVE_ORDER_DAG: OrderStateDag = OrderStateDag::from_nodes(&[
     AllowedTransition::new(STATE_SPREAD_CLOSING, 0xD15C105, &[STATE_FLAT]),
 ]);
 
+/// Chain-feed purity band (preauth 2026-09-03): mass = per-contract dailyBar
+/// volume. Below floor = volume-dead/stale chain; above ceiling = panic
+/// concentration. Calibrated 2026-09-02: calm live chain read 625 pmy on
+/// volume mass vs 46-49 on quote sizes (quote sizes carry no signal).
+pub const CHAIN_PURITY_FLOOR_PMY: u16 = 400;
+pub const CHAIN_PURITY_CEILING_PMY: u16 = 7500;
+
 #[derive(Debug, PartialEq)]
 pub enum DispatchRefusal {
     /// Position-state transition not witnessed in [`LIVE_ORDER_DAG`].
     IllegalTransition,
     /// Arbiter verdict does not authorize neutral spreads.
     VerdictVeto,
-    /// Book is diffuse/chaotic — purity gate refuses execution.
+    /// Chain volume mass outside [CHAIN_PURITY_FLOOR_PMY, CHAIN_PURITY_CEILING_PMY]:
+    /// volume-dead/stale below, panic-concentrated above. Refuses execution.
     ChaoticBook,
     /// Wing width vs credit trips the 2%-of-balance max-loss veto.
     MaxLossVeto,
@@ -114,7 +122,7 @@ pub fn dispatch_spread(
         OracleVerdict::StructuralEquilibrium | OracleVerdict::ScheduledMaintenance => {}
         _ => return Err(DispatchRefusal::VerdictVeto),
     }
-    if purity.is_chaotic() {
+    if purity.pmy < CHAIN_PURITY_FLOOR_PMY || purity.pmy > CHAIN_PURITY_CEILING_PMY {
         return Err(DispatchRefusal::ChaoticBook);
     }
     let wing = max_wing_width(legs);
@@ -189,9 +197,14 @@ mod tests {
         ]
     }
 
-    /// Concentrated-but-real book: uniform depth reads as 0 pmy (diffuse), so
-    /// a passing fixture must be genuinely localized.
-    fn localized_book() -> NormalizedIpr {
+    /// Calm live-chain volume shape: concentrated near-money, tapering wings.
+    /// Lands inside [CHAIN_PURITY_FLOOR_PMY, CHAIN_PURITY_CEILING_PMY].
+    fn calm_book() -> NormalizedIpr {
+        NormalizedIpr::compute_u16(&[500, 300, 200, 100, 80, 60, 40, 20])
+    }
+
+    /// Panic shape: one contract swallows the volume — above the ceiling.
+    fn panic_spike_book() -> NormalizedIpr {
         NormalizedIpr::compute_u16(&[1000, 50, 30, 20])
     }
 
@@ -226,7 +239,7 @@ mod tests {
         };
         let r = dispatch_spread(
             &cli, &creds, STATE_SPREAD_OPEN, OracleVerdict::StructuralEquilibrium,
-            &localized_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
+            &calm_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
         )
         .unwrap_err();
         assert_eq!(r, DispatchRefusal::IllegalTransition);
@@ -242,7 +255,7 @@ mod tests {
         };
         let r = dispatch_spread(
             &cli, &creds, 999, OracleVerdict::StructuralEquilibrium,
-            &localized_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
+            &calm_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
         )
         .unwrap_err();
         assert_eq!(r, DispatchRefusal::IllegalTransition);
@@ -257,16 +270,31 @@ mod tests {
 
     #[test]
     fn critical_verdict_is_refused_before_spawn() {
-        let r = refused_without_subprocess(OracleVerdict::CriticalEscalation, &localized_book(), &condor(), 3.75, 100_000.0);
+        let r = refused_without_subprocess(OracleVerdict::CriticalEscalation, &calm_book(), &condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::VerdictVeto);
     }
 
     #[test]
     fn chaotic_book_is_refused_before_spawn() {
-        // Uniform depth = 0 pmy concentration = diffuse: refused, same as empty.
+        // Uniform volume = 0 pmy = below floor (volume-dead chain): refused.
         let uniform = NormalizedIpr::compute_u16(&[100, 100, 100, 100]);
         let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &uniform, &condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::ChaoticBook);
+    }
+
+    #[test]
+    fn panic_spike_above_ceiling_is_refused_before_spawn() {
+        // One contract swallowing the volume reads above CHAIN_PURITY_CEILING_PMY:
+        // the band refuses BOTH ends, not just diffuse.
+        assert!(panic_spike_book().pmy > CHAIN_PURITY_CEILING_PMY);
+        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &panic_spike_book(), &condor(), 3.75, 100_000.0);
+        assert_eq!(r, DispatchRefusal::ChaoticBook);
+    }
+
+    #[test]
+    fn calm_book_sits_inside_the_chain_purity_band() {
+        let p = calm_book().pmy;
+        assert!(p >= CHAIN_PURITY_FLOOR_PMY && p <= CHAIN_PURITY_CEILING_PMY, "calm fixture pmy={p}");
     }
 
     #[test]
@@ -274,7 +302,7 @@ mod tests {
         // The 2026-09-01 sim pick: 29-wide put wing, $3.75 credit.
         // Max loss (29 - 3.75) * 100 = $2,525 > 2% of $100k. REFUSED — the
         // strategy layer must cap wings, not the gate loosen.
-        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &localized_book(), &condor(), 3.75, 100_000.0);
+        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &calm_book(), &condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::MaxLossVeto);
     }
 
@@ -282,7 +310,7 @@ mod tests {
     fn a_clean_gate_pass_reaches_the_cli_layer() {
         // 20-wide wings: max loss (20 - 3.75) * 100 = $1,625 < $2,000 -> all
         // gates pass and the refusal comes from the (deliberately dead) CLI.
-        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &localized_book(), &narrow_condor(), 3.75, 100_000.0);
+        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &calm_book(), &narrow_condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::Cli(CliRefusal::ExeNotFound(r"Z:\nope\alpaca.exe".into())));
     }
 }

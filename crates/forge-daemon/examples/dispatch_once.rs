@@ -5,7 +5,9 @@
 
 use forge_daemon::alpaca_cli::{AlpacaCli, CliRefusal};
 use forge_daemon::config;
-use forge_daemon::dispatch::{dispatch_spread, DispatchRefusal, STATE_FLAT};
+use forge_daemon::dispatch::{
+    dispatch_spread, DispatchRefusal, CHAIN_PURITY_CEILING_PMY, CHAIN_PURITY_FLOOR_PMY, STATE_FLAT,
+};
 use forge_gate::market_purity::NormalizedIpr;
 use forge_gate::oracle_arbiter::{AuditChain, Disposition, OracleArbiter};
 use forge_gate::strategy::{build_iron_condor, ChainQuote, Side};
@@ -72,8 +74,7 @@ struct Contract {
     delta: f64,
     bid: f64,
     ask: f64,
-    bid_size: u16,
-    ask_size: u16,
+    volume: u64,
 }
 
 fn main() {
@@ -99,20 +100,27 @@ fn main() {
             delta,
             bid: f(snap, &["latestQuote", "bp"]),
             ask: f(snap, &["latestQuote", "ap"]),
-            bid_size: f(snap, &["latestQuote", "bs"]) as u16,
-            ask_size: f(snap, &["latestQuote", "as"]) as u16,
+            volume: f(snap, &["dailyBar", "v"]) as u64,
         });
     }
     println!("chain: {} contracts usable, spot {spot}", contracts.len());
 
-    let mut depth: Vec<u16> = contracts.iter().map(|c| c.bid_size.saturating_add(c.ask_size)).collect();
-    depth.sort_unstable();
+    // Purity mass = per-contract daily volume (preauth 2026-09-03); ratios
+    // preserved under a common divisor so the max fits compute_u16's u16 lane.
+    let max_vol = contracts.iter().map(|c| c.volume).max().unwrap_or(0);
+    let shift = (max_vol / u16::MAX as u64) + 1;
+    let depth: Vec<u16> = contracts.iter().map(|c| (c.volume / shift) as u16).collect();
     let ipr = NormalizedIpr::compute_u16(&depth);
+    let band = if ipr.pmy < CHAIN_PURITY_FLOOR_PMY {
+        "BELOW-FLOOR volume-dead (gate will refuse)"
+    } else if ipr.pmy > CHAIN_PURITY_CEILING_PMY {
+        "ABOVE-CEILING panic-concentrated (gate will refuse)"
+    } else {
+        "IN-BAND"
+    };
     println!(
-        "purity: N*IPR = {} pmy over N={} -> {}",
-        ipr.pmy,
-        ipr.dimension,
-        if ipr.is_landmark() { "LANDMARK" } else if ipr.is_diffuse() { "DIFFUSE (chaos gate will refuse)" } else { "NORMAL" }
+        "purity: N*IPR = {} pmy over N={} (volume mass, band {}-{}) -> {band}",
+        ipr.pmy, ipr.dimension, CHAIN_PURITY_FLOOR_PMY, CHAIN_PURITY_CEILING_PMY
     );
 
     let mut strikes: Vec<f64> = contracts.iter().map(|c| c.strike).collect();
