@@ -112,14 +112,22 @@ pub fn build_iron_condor(
     short_delta: f64,
     long_delta: f64,
     max_deviation: f64,
+    max_wing_width: f64,
 ) -> Option<[Leg; 4]> {
     let short_call = nearest_call_delta(quotes, short_delta, max_deviation)?;
     let long_call = nearest_call_delta(quotes, long_delta, max_deviation)?;
     let short_put = nearest_put_delta(quotes, short_delta, max_deviation)?;
     let long_put = nearest_put_delta(quotes, long_delta, max_deviation)?;
 
+    let call_wing = (long_call.strike - short_call.strike).abs();
+    let put_wing = (long_put.strike - short_put.strike).abs();
+
     if long_call.strike <= short_call.strike || long_put.strike >= short_put.strike {
         return None; // Wings must sit outside the short strikes; refuse otherwise.
+    }
+    
+    if call_wing > max_wing_width || put_wing > max_wing_width {
+        return None; // Refuse if the wings are too wide to satisfy the strategy risk constraints.
     }
 
     Some([
@@ -134,13 +142,20 @@ pub fn build_iron_condor(
 /// call and put body, buy `wing_delta` wings on each side. Same
 /// polysynthetic assembly rule as [`build_iron_condor`]: body + both wings
 /// must each clear `max_deviation`, or the whole build aborts.
-pub fn build_iron_butterfly(quotes: &[ChainQuote], wing_delta: f64, max_deviation: f64) -> Option<[Leg; 4]> {
+pub fn build_iron_butterfly(quotes: &[ChainQuote], wing_delta: f64, max_deviation: f64, max_wing_width: f64) -> Option<[Leg; 4]> {
     // Body strike: the call delta closest to 0.50 (ATM).
     let body = nearest_call_delta(quotes, 0.50, max_deviation)?;
     let long_call = nearest_call_delta(quotes, wing_delta, max_deviation)?;
     let long_put = nearest_put_delta(quotes, wing_delta, max_deviation)?;
 
+    let call_wing = (long_call.strike - body.strike).abs();
+    let put_wing = (long_put.strike - body.strike).abs();
+
     if long_call.strike <= body.strike || long_put.strike >= body.strike {
+        return None;
+    }
+
+    if call_wing > max_wing_width || put_wing > max_wing_width {
         return None;
     }
 
@@ -222,7 +237,7 @@ mod tests {
     #[test]
     fn builds_iron_condor_from_16_5_delta_wings() {
         let chain = synthetic_chain();
-        let legs = build_iron_condor(&chain, 0.16, 0.05, 0.01).expect("condor should build");
+        let legs = build_iron_condor(&chain, 0.16, 0.05, 0.01, f64::INFINITY).expect("condor should build");
 
         assert_eq!(legs[0], Leg { strike: 105.0, is_call: true, side: Side::Sell }); // short 16d call
         assert_eq!(legs[1], Leg { strike: 110.0, is_call: true, side: Side::Buy });  // long 5d call
@@ -233,7 +248,7 @@ mod tests {
     #[test]
     fn builds_iron_butterfly_from_atm_body_and_wings() {
         let chain = synthetic_chain();
-        let legs = build_iron_butterfly(&chain, 0.05, 0.01).expect("butterfly should build");
+        let legs = build_iron_butterfly(&chain, 0.05, 0.01, f64::INFINITY).expect("butterfly should build");
 
         assert_eq!(legs[0], Leg { strike: 100.0, is_call: true, side: Side::Sell });
         assert_eq!(legs[1], Leg { strike: 100.0, is_call: false, side: Side::Sell });
@@ -243,7 +258,7 @@ mod tests {
 
     #[test]
     fn refuses_condor_on_empty_snapshot_never_guesses() {
-        assert!(build_iron_condor(&[], 0.16, 0.05, 0.01).is_none());
+        assert!(build_iron_condor(&[], 0.16, 0.05, 0.01, f64::INFINITY).is_none());
     }
 
     #[test]
@@ -256,7 +271,7 @@ mod tests {
             ChainQuote { strike: 100.0, call_delta: 0.50, put_delta: -0.50 },
             ChainQuote { strike: 105.0, call_delta: 0.16, put_delta: -0.80 },
         ];
-        assert!(build_iron_condor(&thin_chain, 0.16, 0.05, 0.02).is_none());
+        assert!(build_iron_condor(&thin_chain, 0.16, 0.05, 0.02, f64::INFINITY).is_none());
     }
 
     #[test]
@@ -266,7 +281,7 @@ mod tests {
             ChainQuote { strike: 100.0, call_delta: 0.50, put_delta: -0.50 },
             ChainQuote { strike: 105.0, call_delta: 0.16, put_delta: -0.80 },
         ];
-        assert!(build_iron_butterfly(&thin_chain, 0.05, 0.02).is_none());
+        assert!(build_iron_butterfly(&thin_chain, 0.05, 0.02, f64::INFINITY).is_none());
     }
 
     #[test]
@@ -280,9 +295,9 @@ mod tests {
             ChainQuote { strike: 108.0, call_delta: 0.07, put_delta: -0.93 },
             ChainQuote { strike: 92.0, call_delta: 0.93, put_delta: -0.07 },
         ];
-        let legs = build_iron_condor(&chain, 0.16, 0.05, 0.03).expect("7-delta clears a 3pt tolerance");
+        let legs = build_iron_condor(&chain, 0.16, 0.05, 0.03, f64::INFINITY).expect("7-delta clears a 3pt tolerance");
         assert_eq!(legs[1].strike, 108.0);
-        assert!(build_iron_condor(&chain, 0.16, 0.05, 0.01).is_none(), "same book fails a tight 1pt tolerance");
+        assert!(build_iron_condor(&chain, 0.16, 0.05, 0.01, f64::INFINITY).is_none(), "same book fails a tight 1pt tolerance");
     }
 
     #[test]

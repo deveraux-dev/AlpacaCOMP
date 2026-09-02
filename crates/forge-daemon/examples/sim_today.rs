@@ -168,9 +168,9 @@ fn main() {
         None => println!("{name}: REFUSED — no legs within delta deviation bound (correct refusal, not an error)"),
     };
 
-    describe("iron condor (16d short / 5d wing)", build_iron_condor(&quotes, 0.16, 0.05, 0.05));
+    describe("iron condor (16d short / 5d wing)", build_iron_condor(&quotes, 0.16, 0.05, 0.05, f64::INFINITY));
     if ipr.is_landmark() {
-        describe("iron butterfly (landmark-triggered)", build_iron_butterfly(&quotes, 0.05, 0.05));
+        describe("iron butterfly (landmark-triggered)", build_iron_butterfly(&quotes, 0.05, 0.05, f64::INFINITY));
     } else {
         println!("iron butterfly: not triggered (book not landmark-pinned)");
     }
