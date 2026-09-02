@@ -4,14 +4,31 @@
 
 use forge_gate::market_purity::NormalizedIpr;
 use forge_gate::oracle_arbiter::OracleVerdict;
+use forge_gate::order_dag::{AllowedTransition, OrderStateDag};
 use forge_gate::risk_router::exceeds_max_loss_veto;
 use forge_gate::strategy::{Leg, Side};
 
 use crate::alpaca_cli::{AlpacaCli, CliRefusal};
 use crate::config::AlpacaCredentials;
 
+/// Live position lifecycle states witnessed in [`LIVE_ORDER_DAG`].
+pub const STATE_FLAT: u32 = 0;
+pub const STATE_SPREAD_OPEN: u32 = 1;
+pub const STATE_SPREAD_CLOSING: u32 = 2;
+
+/// The only order-state transitions the live path will ever witness:
+/// Flat -> SpreadOpen -> SpreadClosing -> Flat. Anything else (open on
+/// top of open, close from flat, unknown state) is clamped to refusal.
+pub const LIVE_ORDER_DAG: OrderStateDag = OrderStateDag::from_nodes(&[
+    AllowedTransition::new(STATE_FLAT, 0xD15F1A7, &[STATE_SPREAD_OPEN]),
+    AllowedTransition::new(STATE_SPREAD_OPEN, 0xD150FE2, &[STATE_SPREAD_CLOSING]),
+    AllowedTransition::new(STATE_SPREAD_CLOSING, 0xD15C105, &[STATE_FLAT]),
+]);
+
 #[derive(Debug, PartialEq)]
 pub enum DispatchRefusal {
+    /// Position-state transition not witnessed in [`LIVE_ORDER_DAG`].
+    IllegalTransition,
     /// Arbiter verdict does not authorize neutral spreads.
     VerdictVeto,
     /// Book is diffuse/chaotic — purity gate refuses execution.
@@ -30,8 +47,9 @@ pub fn occ_symbol(root: &str, yymmdd: &str, is_call: bool, strike: f64) -> Strin
 }
 
 /// Build the `order_class=mleg` limit-order body for a 4-leg spread.
-/// `limit_price` is the caller's net price (Alpaca signs mleg prices;
-/// the caller owns the sign convention it verified against the live API).
+/// `limit_price` sign per Alpaca mleg convention (verified 2026-09-01,
+/// docs.alpaca.markets + alpaca.markets/learn): net credit = NEGATIVE,
+/// net debit = positive. A credit condor entry MUST pass a negative value.
 pub fn mleg_body(root: &str, yymmdd: &str, legs: &[Leg; 4], qty: u32, limit_price: f64) -> String {
     let leg_json: Vec<String> = legs
         .iter()
@@ -78,6 +96,7 @@ fn width(legs: &[Leg; 4], calls: bool) -> f64 {
 pub fn dispatch_spread(
     cli: &AlpacaCli,
     creds: &AlpacaCredentials,
+    position_state: u32,
     verdict: OracleVerdict,
     purity: &NormalizedIpr,
     legs: &[Leg; 4],
@@ -88,6 +107,9 @@ pub fn dispatch_spread(
     qty: u32,
     limit_price: f64,
 ) -> Result<String, DispatchRefusal> {
+    if !LIVE_ORDER_DAG.validate_path(&[position_state, STATE_SPREAD_OPEN]) {
+        return Err(DispatchRefusal::IllegalTransition);
+    }
     match verdict {
         OracleVerdict::StructuralEquilibrium | OracleVerdict::ScheduledMaintenance => {}
         _ => return Err(DispatchRefusal::VerdictVeto),
@@ -142,6 +164,16 @@ mod tests {
     }
 
     #[test]
+    fn credit_entry_limit_price_is_negative_per_alpaca_mleg_convention() {
+        // Alpaca mleg: credit = negative limit_price, debit = positive
+        // (verified 2026-09-01 against Alpaca docs + learn guide). A condor
+        // entered for a $3.28 credit must serialize as "-3.28".
+        let body = mleg_body("SPY", "261016", &condor(), 1, -3.28);
+        assert!(body.contains(r#""limit_price":"-3.28""#));
+        assert!(serde_json::from_str::<serde_json::Value>(&body).is_ok(), "body is valid JSON");
+    }
+
+    #[test]
     fn widest_wing_drives_max_loss() {
         // Call wing 20 wide, put wing 29 wide -> 29 governs.
         assert_eq!(max_wing_width(&condor()), 29.0);
@@ -178,8 +210,49 @@ mod tests {
             secret_key: crate::secrets::SecureSecret::new(b"s".to_vec()),
             base_url: String::new(),
         };
-        dispatch_spread(&cli, &creds, verdict, purity, legs, credit, balance, "SPY", "261016", 1, 3.50)
+        dispatch_spread(&cli, &creds, STATE_FLAT, verdict, purity, legs, credit, balance, "SPY", "261016", 1, 3.50)
             .unwrap_err()
+    }
+
+    #[test]
+    fn open_on_top_of_open_is_refused_before_every_other_gate() {
+        // SpreadOpen -> SpreadOpen is un-witnessed in LIVE_ORDER_DAG: refused
+        // even though verdict/purity/legs/loss would all pass.
+        let cli = AlpacaCli::new(r"Z:\nope\alpaca.exe");
+        let creds = crate::config::AlpacaCredentials {
+            key_id: crate::secrets::SecureSecret::new(b"k".to_vec()),
+            secret_key: crate::secrets::SecureSecret::new(b"s".to_vec()),
+            base_url: String::new(),
+        };
+        let r = dispatch_spread(
+            &cli, &creds, STATE_SPREAD_OPEN, OracleVerdict::StructuralEquilibrium,
+            &localized_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
+        )
+        .unwrap_err();
+        assert_eq!(r, DispatchRefusal::IllegalTransition);
+    }
+
+    #[test]
+    fn unwitnessed_position_state_is_refused() {
+        let cli = AlpacaCli::new(r"Z:\nope\alpaca.exe");
+        let creds = crate::config::AlpacaCredentials {
+            key_id: crate::secrets::SecureSecret::new(b"k".to_vec()),
+            secret_key: crate::secrets::SecureSecret::new(b"s".to_vec()),
+            base_url: String::new(),
+        };
+        let r = dispatch_spread(
+            &cli, &creds, 999, OracleVerdict::StructuralEquilibrium,
+            &localized_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
+        )
+        .unwrap_err();
+        assert_eq!(r, DispatchRefusal::IllegalTransition);
+    }
+
+    #[test]
+    fn live_dag_witnesses_exactly_the_three_hop_lifecycle() {
+        assert!(LIVE_ORDER_DAG.validate_path(&[STATE_FLAT, STATE_SPREAD_OPEN, STATE_SPREAD_CLOSING, STATE_FLAT]));
+        assert!(!LIVE_ORDER_DAG.validate_path(&[STATE_FLAT, STATE_SPREAD_CLOSING]));
+        assert!(!LIVE_ORDER_DAG.validate_path(&[STATE_SPREAD_OPEN, STATE_FLAT]));
     }
 
     #[test]

@@ -168,7 +168,14 @@ fn main() {
         None => println!("{name}: REFUSED — no legs within delta deviation bound (correct refusal, not an error)"),
     };
 
-    describe("iron condor (16d short / 5d wing)", build_iron_condor(&quotes, 0.16, 0.05, 0.05));
+    // Wing cap: worst-case loss (width - credit) * 100 must clear the
+    // risk_router 2%-of-$100k veto; credit-blind width <= $20 is the
+    // conservative single-pass bound (0.02 * 100_000 / 100).
+    let max_wing_width = 0.02 * 100_000.0 / 100.0;
+    describe(
+        "iron condor (16d short / 5d wing, wing cap $20)",
+        build_iron_condor(&quotes, 0.16, 0.05, 0.05, max_wing_width),
+    );
     if ipr.is_landmark() {
         describe("iron butterfly (landmark-triggered)", build_iron_butterfly(&quotes, 0.05, 0.05));
     } else {
