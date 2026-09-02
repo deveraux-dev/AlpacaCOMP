@@ -15,19 +15,40 @@
 
 Unlike conventional AI bots that rely on unpredictable LLM outputs, 13forge enforces a rigorous architectural philosophy to guarantee execution safety and bounded risk: the model is never trusted with an order.
 
-## 📊 Live Metrics & The Claim-Proof Ledger
+## 📊 The Claim-Proof Ledger
 
-Our core thesis for this hackathon: *every claim must have a machine receipt*. Below is the definitive mapping of how our "Zero-Claims Doctrine" fulfills the judging criteria:
+Our core thesis for this hackathon: *no claim is shown as verified unless it has a receipt.* Below is the definitive mapping of how our "Zero-Claims Doctrine" fulfills the judging criteria.
 
-| Core Claim | Status | Exact Receipt / Proof | Target Judge |
-|------------|--------|-----------------------|--------------|
-| **1. Bicameral Veto Gate (Risk Safety)** | **[VERIFIED]** | The oversized condor is rejected by the 2% max-loss veto (0 syscalls). | **Tony Lee** (Margin safety, zero naked short exposure) |
-| **2. Clean Alpaca MLEG Payload Dispatch** | **[VERIFIED]** | `dispatch.rs` negative `limit_price` pinning test; valid JSON payloads generated natively in Rust. | **Brandon Meyerowitz** (mleg JSON format, non-blocking execution) |
-| **3. Clean Developer Ergonomics** | **[PROVEN]** | The Offline Ledger Scrubber UI & the CLI HUD tracking N×IPR entropy scores. | **Grace Gao** (Developer UX, CLI/MCP integration) |
-| **4. Zero-Hallucination Evidence Chain** | **[VERIFIED]** | The SHA-256 hash-chained `proof-ledger.tsv` proving every decision is deterministic. | **Chiranjeev Shah** (Unassailable receipts, transparency) |
-| **5. Decoupled Agent Architecture** | **[PROVEN]** | Dual-oracle emitting tokens → Strict quantitative gate lattice making the final call. | **Pawel Czech** (Next-gen agent paradigms, autonomy) |
+### Live Execution Claims
+| Claim | Status | Proof Source | Judge Angle |
+|-------|--------|--------------|-------------|
+| **Position-state DAG gates live dispatch first.** | **LIVE** | `LIVE_ORDER_DAG`, `DispatchRefusal::IllegalTransition` | **Tony, Pawel** (Illegal transitions refused before CLI) |
+| **Oracle verdict can veto an order.** | **LIVE** | `DispatchRefusal::VerdictVeto` in `dispatch_spread` | **Pawel, Tony** (Arbiter verdict blocks execution) |
+| **Market purity/chaos can veto an order.** | **LIVE** | `purity.is_chaotic()` -> `DispatchRefusal::ChaoticBook` | **Tony, Pawel** (Chaotic market structure stops execution) |
+| **2% max-loss veto blocks unsafe spreads.** | **LIVE** | `exceeds_max_loss_veto` test | **Tony, Chiranjeev** (Margin safety, 0 syscalls) |
+| **Alpaca mleg credit price is negative.** | **VERIFIED** | `mleg_body` test, negative limit price pinning | **Brandon** (API correctness) |
+| **Order JSON is sent through stdin.** | **LIVE** | `cli.run_with_stdin` in `dispatch_spread` | **Brandon** (Payload leakage prevention) |
 
-> **Note on Verification:** All limits and guardrails are hardcoded in the `strategy` and `dispatch` layers. No trade is submitted to the Alpaca API unless it passes the 2% maximum-loss bounds check. The multi-leg `limit_price` sign convention is rigidly enforced. Every risk decision is computed in exact integer fields, so the result is independent of summation order — the same inputs produce the same gate verdict, bit-for-bit, every time.
+### Strategy Claims
+| Claim | Status | Proof Source | Judge Angle |
+|-------|--------|--------------|-------------|
+| **Strategy builds from real chain quotes.** | **TESTED** | `build_iron_condor` / `build_iron_butterfly` | **Pawel, Tony** (No model-invented strikes) |
+| **Wing cap pulls over-wide wings inward.** | **TESTED** | `max_wing_width` parameter | **Tony** (Keeps trades inside risk ceiling) |
+
+### Support Components
+| Claim | Status | Proof Source | Judge Angle |
+|-------|--------|--------------|-------------|
+| **`forge-gate` is `no_std`.** | **LIVE** | `#![no_std]` in `crates/forge-gate/src/lib.rs` | **Brandon** (Bare-metal constraints) |
+| **Merkle seal / evidence chain.** | **PROVEN** | `.forge/proof-ledger.tsv` | **Chiranjeev** (Unassailable receipts) |
+
+### Metrics (Pending Fresh Receipts)
+*The following metrics require fresh session receipts before we call them verified on the demo portal:*
+- **55.4% Win Rate** ⚠️ `[NEEDS RECEIPT]`
+- **1.73 Profit Factor** ⚠️ `[NEEDS RECEIPT]`
+- **1.5 µs Risk Guardrail Latency** ⚠️ `[NEEDS RECEIPT]`
+- **118 Tests Green** ⚠️ `[NEEDS FRESH SESSION RECEIPT]`
+
+> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the state transition, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
 
 ## 🧠 The Zero Generative Law
 
