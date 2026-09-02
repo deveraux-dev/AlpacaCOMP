@@ -1,0 +1,10 @@
+day	secs	crate	claim	ladder	oracle_1	oracle_2	receipt
+20698	1788311231	forge-daemon	account PA3FMNQT9WDW ACTIVE cash=100000 options_level=3	VERIFIED	REST Invoke-RestMethod /v2/account	alpaca.exe account get via alpaca_cli.rs bridge	live_smoke.rs run 2026-09-01 ~21:05 ET
+20698	1788311231	forge-daemon	alpaca_cli.rs bridge spawn/refusal/env-injection correct	PROVEN	cargo test 15/15 green	-	alpaca_cli::tests 4/4 incl env-vars-never-argv
+20698	1788311231	tools	alpaca.exe v0.0.14 binary integrity	VERIFIED	SHA256 7f4838887ac4218c...	alpacahq/cli published checksums.txt	Get-FileHash match, extracted only on match
+20698	1788311231	forge-daemon	end-to-end daemon->subprocess->paper-API seam closed	PROVEN	live_smoke.rs ACCOUNT OK + CLOCK OK	-	single-oracle: one path exercised, second oracle = tomorrow's live order ack
+20698	1788311958	sim	sim-loop tick: purity=46 pmy, condor_credit=$375.50	PROVEN	sim_today.rs over fresh chain pull	-	loop iteration, market closed
+20698	1788312549	forge-gate	merkle_seal.rs ported (gemma-s13 s13.rs:642-765) + net-new fold; 77/77 green	PROVEN	cargo test 10 seal tests incl tamper-refusal	-	session_root=1d93d6df3e995c2ddc116d598e720c1f143ac26dc7d8fa7683a74a2863adf2d7
+20698	1788313825	forge-gate	residue.rs Fredholm resolvent ported (forge-core-v3 resolvent.rs); D=T+F+R complete	PROVEN	cargo test 90/90 green incl conservative-boundary refusal	-	13 ported tests, PMY re-homed to market_purity::PERMYRIAD_SCALE
+20698	1788313903	sim	sim-loop tick: purity=46 pmy, condor_credit=$375.50	PROVEN	sim_today.rs fresh pull	-	session_root=ba0426cc5569ef1d...
+20698	1788314207	forge-daemon	dispatch.rs mleg order dispatch behind ALL gates; 22/22 green	PROVEN	cargo test incl refuse-before-spawn proofs	-	FINDING: simmed 29-wide condor trips own 2pct veto on 100k - strategy wing cap needed; mleg limit-price sign UNVERIFIED vs live API

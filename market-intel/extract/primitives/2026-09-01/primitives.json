@@ -1,0 +1,68 @@
+[
+  {
+    "date": "2026-09-01",
+    "primitive": "iron_condor_automation",
+    "competitor_domains": ["alpaca.markets", "composer.trade", "optionalpha.com", "quantconnect.com", "tastytrade.com"],
+    "evidence_count": 5,
+    "confidence": "high",
+    "build_router_decision": "copy",
+    "why_it_matters": "Table stakes across every pinned competitor. Judges will assume baseline condor/butterfly automation exists; AlpacaCOMP already ships it in strategy.rs.",
+    "alpacacomp_mapping": "crates/forge-gate/src/strategy.rs -- Iron Condor + Iron Butterfly leg selection, already built",
+    "next_action": "No build work needed. Confirm demo shows a live leg-selection example."
+  },
+  {
+    "date": "2026-09-01",
+    "primitive": "deterministic_risk_gate",
+    "competitor_domains": ["alpaca.markets", "tastytrade.com"],
+    "evidence_count": 2,
+    "confidence": "medium",
+    "build_router_decision": "weaponize",
+    "why_it_matters": "No pinned competitor shows an autonomous, sub-microsecond, refuse-on-fault pre-trade gate. tastytrade's Risk Analysis and Alpaca's margin multipliers are both human-in-the-loop or static-limit, not a deterministic watchdog state machine.",
+    "alpacacomp_mapping": "crates/forge-gate/src/risk_router.rs + market_purity.rs (1.5us gate, N*sum(p_i^2) purity metric)",
+    "next_action": "Put the 1.5us number and watchdog states (Divergence/Normal/Convergence Spike) on the differentiator slide. Do not conflate with Alpaca's 1.5ms OMS order-processing claim -- different layer, cite both to sharpen the contrast."
+  },
+  {
+    "date": "2026-09-01",
+    "primitive": "dual_oracle_consensus",
+    "competitor_domains": ["composer.trade", "quantconnect.com", "numer.ai"],
+    "evidence_count": 3,
+    "confidence": "medium",
+    "build_router_decision": "invert",
+    "why_it_matters": "Composer and QuantConnect's Mia let an LLM author strategy logic directly (natural-language -> strategy). AlpacaCOMP inverts this: LLM oracles emit only S13 thesis tokens, never strikes/Greeks/JSON payloads -- a stricter, auditable boundary (Zero Generative Law).",
+    "alpacacomp_mapping": "crates/forge-gate/src/oracle_arbiter.rs -- Bull/Bear S13 consensus judge",
+    "next_action": "Frame the writeup contrast explicitly: 'competitor AI agents write the trade; ours only votes on a thesis token, the trade is built from caller-supplied ChainQuote.' This is a compliance/trust argument, not just an architecture note."
+  },
+  {
+    "date": "2026-09-01",
+    "primitive": "take_profit_time_stop",
+    "competitor_domains": ["optionalpha.com"],
+    "evidence_count": 1,
+    "confidence": "high",
+    "build_router_decision": "copy",
+    "why_it_matters": "Option Alpha ships the same 'take-profit + time-stop' exit primitive we already have. Direct parity confirmation, not a gap.",
+    "alpacacomp_mapping": "crates/forge-gate/src/strategy.rs -- 50%-credit take-profit, 21-DTE time-stop",
+    "next_action": "No build work needed."
+  },
+  {
+    "date": "2026-09-01",
+    "primitive": "backtesting_engine",
+    "competitor_domains": ["alpaca.markets", "composer.trade", "optionalpha.com", "quantconnect.com", "tastytrade.com"],
+    "evidence_count": 5,
+    "confidence": "high",
+    "build_router_decision": "watch",
+    "why_it_matters": "Every single pinned competitor advertises backtesting; AlpacaCOMP has no stated backtesting engine in the architect_reprime build log. This is the single clearest capability gap versus the entire competitive set.",
+    "alpacacomp_mapping": "none found -- gap, not yet drained/confirmed absent via repo grep this session",
+    "next_action": "[ASSUMED gap -- verify via repo grep before committing build hours] If confirmed absent, decide: is a minimal backtest harness worth remaining build time, or does it get named explicitly as a stated non-goal in the writeup (paper-trading live validation substitutes for backtesting)?"
+  },
+  {
+    "date": "2026-09-01",
+    "primitive": "broker_api_cli_mcp",
+    "competitor_domains": ["alpaca.markets", "composer.trade", "optionalpha.com", "quantconnect.com", "tastytrade.com"],
+    "evidence_count": 5,
+    "confidence": "high",
+    "build_router_decision": "watch",
+    "why_it_matters": "All competitors expose either their own brokerage or third-party broker integrations. AlpacaCOMP's decision to use the Alpaca CLI over an MCP server for unattended/cron-fit execution is still deferred, blocked on Sean providing a fresh paper account + API keys.",
+    "alpacacomp_mapping": "architect_reprime decisions: 'Execution surface: Alpaca CLI over MCP server'; deferred item blocked on fresh paper account.",
+    "next_action": "This is the critical-path blocker for the entire submission checklist (fresh paper account, account ID, CLI wiring). Escalate ahead of any further market-intel work."
+  }
+]

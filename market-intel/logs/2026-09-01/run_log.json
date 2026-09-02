@@ -1,0 +1,28 @@
+{
+  "run_date": "2026-09-01",
+  "mode": "market_pulse",
+  "cadence": "baseline",
+  "targets": [
+    "alpaca.markets",
+    "composer.trade",
+    "optionalpha.com",
+    "quantconnect.com",
+    "tastytrade.com",
+    "numer.ai"
+  ],
+  "fetch_tool": "WebFetch (AI-summarized markdown, not raw HTML capture)",
+  "pages_fetched": 6,
+  "pages_skipped": 0,
+  "constraints_honored": [
+    "no paid APIs",
+    "no SERP services",
+    "no proxy services",
+    "no login-walled paths",
+    "homepage only, no deep crawl beyond allowlisted paths this pass"
+  ],
+  "deviations_from_target_policy": [
+    "raw_html/raw_pdf/headers cache directories not populated -- WebFetch does not expose raw bytes or a hashable payload, only a model-summarized excerpt",
+    "only homepages fetched, not deeper allowlisted paths (/pricing, /docs, /strategies) -- acceptable for a baseline pass, deeper paths deferred to next report"
+  ],
+  "errors": []
+}

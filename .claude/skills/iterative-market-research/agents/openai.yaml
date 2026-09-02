@@ -1,0 +1,16 @@
+interface:
+  display_name: Iterative Market Research (AlpacaCOMP)
+  short_description: Local-first launch market pulse reports for the Alpaca AI
+    Trading Agents Hackathon with evidence ledgers and differentiate-vs-cut
+    decision support.
+  icon: chart-line
+  color: '#7A4DFF'
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

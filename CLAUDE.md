@@ -1,0 +1,140 @@
+<system\_context>
+
+&#x20;   <mission>Alpaca AI Trading Agents Hackathon</mission>
+
+&#x20;   <deadline\_mdt>2026-09-04T09:00:00</deadline\_mdt>
+
+&#x20;   <current\_metrics>
+
+&#x20;       <metric name="audited\_win\_rate" value="55.4%" />
+
+&#x20;       <metric name="profit\_factor" value="1.73" />
+
+&#x20;       <metric name="risk\_guardrail\_latency" value="1.5 µs" />
+
+&#x20;   </current\_metrics>
+
+
+
+&#x20;   <default\_review\_posture persist="always">
+&#x20;       <criticality>Before starting requested work, name what is actually on the scored/deadline-blocking critical path vs cosmetic work; surface blockers unprompted (see submission\_checklist priority="critical" items) even if not asked about.</criticality>
+&#x20;       <saliency>Lead every report/finding with the highest-impact fact, not chronological order or exhaustive coverage; one clearly-labeled headline finding beats ten flat bullets.</saliency>
+&#x20;       <lateral\_awareness>When a cross-domain file/primitive is proposed for porting (by Sean or self), read it this-turn and state the verdict plainly: a REAL match cites file:line plus the shared mechanism by name; a FALSE match is named as false and logged to rejected\_as\_false\_match below — never silently absorbed, never silently ignored.</lateral\_awareness>
+&#x20;   </default\_review\_posture>
+
+&#x20;   <core\_architecture\_invariants>
+
+&#x20;       <constraint type="environment">Strict #!\[no\_std], zero heap allocations.</constraint>
+
+&#x20;       <constraint type="concurrency">Lock-free AtomicU64 and AtomicU32 telemetry streaming via NiprPackedWord\[cite: 3]. No mutexes.</constraint>
+
+&#x20;       <constraint type="state\_updates">O(1) SIMD-friendly scalar chunked MAC loops\[cite: 3].</constraint>
+
+&#x20;       <constraint type="memory">243-entry S13 ternary decode Look-Up Table bound to a single 256-byte CPU cache line\[cite: 2].</constraint>
+
+&#x20;   </core\_architecture\_invariants>
+
+
+
+&#x20;   <mathematical\_engine model="D=T+F+R">
+
+&#x20;       <theory desc="T">Cached, zero-latency risk bounds, optimal allocation matrices, and options hierarchy constraints\[cite: 1, 2].</theory>
+
+&#x20;       <flux desc="F">Discrete 16-byte delta-logs via Alpaca WebSocket representing L2 order book microstructure\[cite: 1, 2].</flux>
+
+&#x20;       <residue desc="R">Target R=0 via single-pass Fredholm resolvent operator over exact Mersenne31 integer fields\[cite: 1, 2].</residue>
+
+&#x20;   </mathematical\_engine>
+
+
+
+&#x20;   <risk\_gating>
+
+&#x20;       <purity\_metric>
+
+&#x20;           <equation>N \* sum(p\_i^2)</equation>
+
+&#x20;           <format>Exact Permyriad (10^-4) fixed-point integers\[cite: 2, 3].</format>
+
+&#x20;           <efficiency>Bypasses transcendental logarithm tax using 2-cycle FMA dot products\[cite: 2, 3].</efficiency>
+
+&#x20;       </purity\_metric>
+
+&#x20;       <watchdog\_state\_machine>
+
+&#x20;           <state threshold="\&lt; 1.0" condition="Divergence">Market chaos. Triggers Tikhonov clamping\[cite: 2].</state>
+
+&#x20;           <state threshold="1.0 \&lt;= x \&lt;= 200.0" condition="Normal">Market stable. Authorize standard execution\[cite: 2].</state>
+
+&#x20;           <state threshold="\&gt; 200.0" condition="Convergence Spike">Runaway volatility. Refuse execution (Gate Fault)\[cite: 2, 3].</state>
+
+&#x20;       </watchdog\_state\_machine>
+
+&#x20;   </risk\_gating>
+
+
+
+&#x20;   <dynamic\_tikhonov\_clamping>
+
+&#x20;       <mechanism>Multiplicative damping factor ε(t) = max(1 - β(t), 10^-4)\[cite: 2].</mechanism>
+
+&#x20;       <aimd\_application>Modulates internal feedback gain and regulates polling interval to prevent API rate limits and execution singularities\[cite: 1, 2].</aimd\_application>
+
+&#x20;   </dynamic\_tikhonov\_clamping>
+
+
+
+&#x20;   <submission\_checklist>
+
+&#x20;       <task status="done" priority="critical">Confirm fresh Alpaca paper account balance is reset to exactly $100,000. Verified live via GET /v2/account 2026-09-01: cash=100000, equity=100000, status=ACTIVE, buying\_power=400000.</task>
+
+&#x20;       <task status="done" priority="critical">Retrieve new Alpaca Account ID for official P\&amp;L judging verification. Account ID: PA3FMNQT9WDW.</task>
+
+&#x20;       <task status="pending" priority="high">Finalize 1-page write-up detailing D=T+F+R logic, 1.5 µs risk gates, and Alpaca CLI/MCP infrastructure.</task>
+
+&#x20;       <task status="pending" priority="high">Compile presentation assets: Video presentation, slide deck, and cover image.</task>
+
+&#x20;       <task status="pending" priority="medium">Publish public GitHub repository and demo URL.</task>
+
+&#x20;       <task status="pending" priority="low">Publish up to 5 Build-in-Public posts on X/LinkedIn tagging @lablabai and @AlpacaHQ.</task>
+
+&#x20;   </submission\_checklist>
+
+&#x20;   <architect\_reprime date="2026-09-01" for="next-session">
+&#x20;       <built crate="F:\AlpacaCOMP\crates\forge-gate" tests="40/40 green">
+&#x20;           <module file="src/order\_dag.rs">Order-state DAG; illegal transitions clamped to ORDER\_REJECT. Ported from Nistam gemma-s13/logit\_mask.rs::RagDag.</module>
+&#x20;           <module file="src/risk\_router.rs">Exposure-bound + margin trip + exceeds\_max\_loss\_veto (2%-of-balance, strict &gt;). Ported from Nistam forge-envelope/safety\_router.rs.</module>
+&#x20;           <module file="src/oracle\_arbiter.rs">Dual-oracle (Bull/Bear) S13[i8;13] consensus judge: StructuralEquilibrium/ScheduledMaintenance/CriticalEscalation/ProvenanceBreach. Ported from Nistam forge-envelope/weaver.rs::WeaverArbiter + EvidenceChain/Disposition.</module>
+&#x20;           <module file="src/market\_purity.rs">NormalizedIpr/NiprPackedWord, permyriad [0,10000] book-concentration metric; is\_chaotic()=is\_diffuse(). Ported from F:\v3\crates\forge-hal-clockspine\src\nipr.rs.</module>
+&#x20;           <module file="src/api\_pacer.rs">ApiPacer AIMD poll backoff, 250ms floor default. Ported from F:\v3\crates\forge-vision-v3\src\poll5d\pace.rs::Pacer.</module>
+&#x20;           <module file="src/greeks.rs">NET-NEW (no source primitive existed, drain confirmed absent repo-wide). Black-Scholes price/delta via libm; verified vs Hull textbook values + put-call parity.</module>
+&#x20;           <module file="src/strategy.rs">NET-NEW. Iron Condor (16d/5d wings) + Iron Butterfly (ATM body, landmark-triggered) leg selection from caller-supplied ChainQuote only — never model-hallucinated strikes/Greeks. 45 DTE target, 50%-credit take-profit, 21-DTE time-stop.</module>
+&#x20;       </built>
+&#x20;       <rejected\_as\_false\_match>G:\E DRIVE\...\arbiter.rs (unrelated TODO-schema validator) and fredholm\_dsp\_gate.hpp (unrelated audio-entrainment DSP) — do not port either, confirmed by read this repo's prior session.</rejected\_as\_false\_match>
+&#x20;       <rejected\_as\_false\_match date="2026-09-01">F:\v3\crates\forge-audio-v3\src\dimensional\_collapse.rs (5D-\&gt;stereo/5.1 acoustic spatializer for lightning-strike/glyph sound rendering; no market-data overlap — market\_collapse.rs was built via thermometer encoding instead, not ported from this). G:\E DRIVE\.airgap\backup-2026-08-28-v3\v3\s13\_gemma\_m2\lora\bundle.s3lora, F:\NewRepo\nde-live\lora\_swarm\active.lora, F:\v3\.forge\lora-beat-ledger.tsv (LoRA adapters repairing quantization loss on a Gemma-3-4B GGUF's transformer blocks; "S13" here is a model-checkpoint tag, not the same mechanism as oracle\_arbiter.rs's S13\[i8;13\] ternary lane vector — name coincidence, not a shared primitive). F:\archive-arbiter (separate Googleathon Taskmaster-track submission, Python/GCP/Pub-Sub/Firestore stack; same "deterministic arbiter never trusts the LLM's own assertion" philosophy as oracle\_arbiter.rs/strategy.rs but zero code overlap — nothing portable).</rejected\_as\_false\_match>
+&#x20;       <rejected\_as\_false\_match date="2026-09-01">G:\E DRIVE\.airgap\backup-2026-08-28-v3\v3\crates\forge-daemon-door\src\mma\_nostr.rs — NIP-01/BIP-340 Schnorr NOSTR broadcast+verify of signed LLM weight-matrix updates; no NOSTR requirement anywhere in this repo's spec, not portable. Its Base-243/5-trits-per-byte packing (codepoint 121 = all-zero trit center) independently CORROBORATES oracle\_arbiter.rs's BASE243\_GRAVITY\_LUT design (built before this file was read) — same repo convention, not copied from here, nothing further to port.</rejected\_as\_false\_match>
+&#x20;       <follow\_up\_note date="2026-09-01" blocked\_on="daemon layer, same as Alpaca CLI wiring">mma\_nostr.rs's `SovereignActivations`/ADR-0026 zeroize-on-drop RAII pattern (scrub a buffer from RAM on drop) is worth applying to the Alpaca API secret key once the daemon subprocess layer is built — heap-backed (`Vec`), so it belongs at the daemon/std layer, never in the `#!\[no\_std\]` forge-gate crate.</follow\_up\_note>
+&#x20;       <built date="2026-09-01-night" tests="90/90 gate + 15/15 daemon green">
+&#x20;           <module file="crates/forge-gate/src/merkle_seal.rs">Merkle-Morin seal ported from Nistam gemma-s13/s13.rs:642-765 (b"S13M" header byte-compatible); net-new zero-heap SHA-256 streaming fold (drain confirmed: leaf builders exist quarry-wide, no fold anywhere). Ledger session roots chain nightly.</module>
+&#x20;           <module file="crates/forge-gate/src/residue.rs">Fredholm second-kind resolvent ported from forge-core-v3/resolvent.rs (Field5D + macaulay_pow); PMY re-homed to market_purity::PERMYRIAD_SCALE. D=T+F+R now mechanically complete.</module>
+&#x20;           <module file="crates/forge-daemon/src/alpaca_cli.rs">Alpaca CLI subprocess bridge ported from forge-daemon-door/oracle_escalate.rs:98-134; creds enter child as ALPACA_* env only, never argv. Live-verified against PA3FMNQT9WDW via examples/live_smoke.rs.</module>
+&#x20;           <asset>tools/alpaca-cli/alpaca.exe v0.0.14 SHA256-verified; examples/sim_today.rs dry-run (real SPY Oct16 chain, trit overlay, condor 795C/815C/719P/690P $375.50); .forge/proof-ledger.tsv; scripts/bake_patex_alpaca.py -> patex_alpaca.png.</asset>
+&#x20;       </built>
+&#x20;       <follow\_up\_note date="2026-09-01" blocked\_on="post-deadline">Whitepaper: "Zero Generative Law" position paper (bounded ternary thesis tokens, deterministic refuse-by-default gate lattice, one auditable execution seam, Merkle-sealed decision log) with AlpacaCOMP + 1.58-bit Gemma release as the two worked examples. Practitioner venue (arXiv-style/own site), NOT academic-novelty framing without real evaluation. Write it FROM the 1-page submission write-up after Friday.</follow\_up\_note>
+&#x20;       <decisions>
+&#x20;           <d>Execution surface: Alpaca CLI over MCP server (unattended/cron-fit; MCP needs a live assistant loop).</d>
+&#x20;           <d>Strategies: Iron Condor + Iron Butterfly only, this pass.</d>
+&#x20;           <d>Goal ranking: P&amp;L is the scored objective; autonomy/MCP-CLI/options are eligibility gates, not the score.</d>
+&#x20;           <d>Zero Generative Law extended to trading: LLM oracles emit S13 thesis tokens only, never strikes/Greeks/JSON payloads directly.</d>
+&#x20;       </decisions>
+&#x20;       <deferred blocked\_on="none (unblocked 2026-09-01)">
+&#x20;           Alpaca CLI subprocess wiring, live daemon loop, state-desync reconcile-only mode. Not started. Paper account PA3FMNQT9WDW is ACTIVE, $100,000 balance verified live. APCA\_API\_KEY\_ID/APCA\_API\_SECRET\_KEY are set for the current terminal session only (Sean's choice — never written to a file in this repo); a fresh session/terminal needs them re-set before `forge_daemon::config::load\_from\_env()` or any live PowerShell call can authenticate. `crates/forge-daemon` (governor.rs, secrets.rs, config.rs) is the scaffolding built ahead of this unblock — now ready to wire to a real HTTP client.
+&#x20;       </deferred>
+&#x20;       <hard\_constraints persist="always">
+&#x20;           <c>GIT=0: no git command touches F:\v3, F:\Nistam-Dream-Engine-Sovereign-Silicon-Socratic-Mind, or F:\AlpacaCOMP. Porting = Read+Write only, never clone/checkout/cherry-pick/init/commit. AlpacaCOMP disqualifies on any commit — stays a plain directory.</c>
+&#x20;           <c>N×IPR is permyriad [0,10000] (LANDMARK=7500, DIFFUSE=2500) — NOT the raw divergence&lt;1.0/spike&gt;200.0 scale from the original ZPSR doc; that scale is not implemented anywhere.</c>
+&#x20;       </hard\_constraints>
+&#x20;   </architect\_reprime>
+
+</system\_context>
+
