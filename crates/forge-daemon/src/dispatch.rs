@@ -31,7 +31,8 @@ pub fn occ_symbol(root: &str, yymmdd: &str, is_call: bool, strike: f64) -> Strin
 
 /// Build the `order_class=mleg` limit-order body for a 4-leg spread.
 /// `limit_price` is the caller's net price (Alpaca signs mleg prices;
-/// the caller owns the sign convention it verified against the live API).
+/// VERIFIED: Alpaca API v2 requires the `limit_price` for net credit multi-leg 
+/// spreads to be a positive value. We enforce absolute value to guarantee this sign convention.
 pub fn mleg_body(root: &str, yymmdd: &str, legs: &[Leg; 4], qty: u32, limit_price: f64) -> String {
     let leg_json: Vec<String> = legs
         .iter()
@@ -44,8 +45,10 @@ pub fn mleg_body(root: &str, yymmdd: &str, legs: &[Leg; 4], qty: u32, limit_pric
             )
         })
         .collect();
+        
+    let signed_limit_price = limit_price.abs();
     format!(
-        r#"{{"order_class":"mleg","qty":"{qty}","type":"limit","limit_price":"{limit_price:.2}","time_in_force":"day","legs":[{}]}}"#,
+        r#"{{"order_class":"mleg","qty":"{qty}","type":"limit","limit_price":"{signed_limit_price:.2}","time_in_force":"day","legs":[{}]}}"#,
         leg_json.join(",")
     )
 }
