@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13forge - Decision Ledger Scrubber</title>
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --text-color: #c5c6c7;
+            --accent: #66fcf1;
+            --accent-dark: #45a29e;
+            --danger: #d63031;
+            --success: #00b894;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-mono);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            border-bottom: 2px solid var(--accent-dark);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .ledger-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            background-color: rgba(69, 162, 158, 0.1);
+            color: var(--accent);
+            border-bottom: 1px solid var(--accent-dark);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #1f2833;
+        }
+
+        tr:hover {
+            background-color: rgba(102, 252, 241, 0.05);
+            cursor: crosshair;
+        }
+
+        .badge-verified {
+            background-color: rgba(0, 184, 148, 0.2);
+            color: var(--success);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .badge-proven {
+            background-color: rgba(69, 162, 158, 0.2);
+            color: var(--accent);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .badge-unverified {
+            background-color: rgba(214, 48, 49, 0.2);
+            color: var(--danger);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .panel {
+            background-color: #111;
+            border: 1px solid #333;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .panel h3 {
+            margin-top: 0;
+            color: var(--accent);
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>13forge // Ledger Scrubber</h1>
+            <div class="subtitle">Zero-Allocation Execution Engine &middot; Immutable Decision Log</div>
+        </div>
+        <div style="text-align: right; font-size: 0.8rem; color: #888;">
+            <b>File:</b> .forge/proof-ledger.tsv<br>
+            <b>Status:</b> SECURE
+        </div>
+    </div>
+
+    <div class="ledger-container">
+        <table id="ledgerTable">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Seconds (Unix)</th>
+                    <th>Crate</th>
+                    <th>Claim / Decision</th>
+                    <th>Ladder</th>
+                    <th>Oracle 1</th>
+                    <th>Oracle 2</th>
+                    <th>Receipt (SHA-256 Chain)</th>
+                </tr>
+            </thead>
+            <tbody id="ledgerBody">
+                <!-- Data populated by JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel" id="detailPanel">
+        <h3>Receipt Inspector</h3>
+        <p><strong>Crate:</strong> <span id="detCrate"></span></p>
+        <p><strong>Claim:</strong> <span id="detClaim"></span></p>
+        <p><strong>Receipt:</strong></p>
+        <pre id="detReceipt"></pre>
+    </div>
+
+    <script>
+        // Because of CORS restrictions when loading local files, we will embed the current state of proof-ledger.tsv
+        // directly here for the offline demo. In a live environment, we would fetch('./.forge/proof-ledger.tsv').
+        
+        const rawTsvData = `day	secs	crate	claim	ladder	oracle_1	oracle_2	receipt
+20698	1788311231	forge-daemon	account PA3FMNQT9WDW ACTIVE cash=100000 options_level=3	VERIFIED	REST Invoke-RestMethod /v2/account	alpaca.exe account get via alpaca_cli.rs bridge	live_smoke.rs run 2026-09-01 ~21:05 ET
+20698	1788311231	forge-daemon	alpaca_cli.rs bridge spawn/refusal/env-injection correct	PROVEN	cargo test 15/15 green	-	alpaca_cli::tests 4/4 incl env-vars-never-argv
+20698	1788311231	tools	alpaca.exe v0.0.14 binary integrity	VERIFIED	SHA256 7f4838887ac4218c...	alpacahq/cli published checksums.txt	Get-FileHash match, extracted only on match
+20698	1788311231	forge-daemon	end-to-end daemon->subprocess->paper-API seam closed	PROVEN	live_smoke.rs ACCOUNT OK + CLOCK OK	-	single-oracle: one path exercised, second oracle = tomorrow's live order ack
+20698	1788311958	sim	sim-loop tick: purity=46 pmy, condor_credit=$375.50	PROVEN	sim_today.rs over fresh chain pull	-	loop iteration, market closed
+20698	1788312549	forge-gate	merkle_seal.rs ported (gemma-s13 s13.rs:642-765) + net-new fold; 77/77 green	PROVEN	cargo test 10 seal tests incl tamper-refusal	-	session_root=1d93d6df3e995c2ddc116d598e720c1f143ac26dc7d8fa7683a74a2863adf2d7
+20698	1788313825	forge-gate	residue.rs Fredholm resolvent ported (forge-core-v3 resolvent.rs); D=T+F+R complete	PROVEN	cargo test 90/90 green incl conservative-boundary refusal	-	13 ported tests, PMY re-homed to market_purity::PERMYRIAD_SCALE
+20698	1788313903	sim	sim-loop tick: purity=46 pmy, condor_credit=$375.50	PROVEN	sim_today.rs fresh pull	-	session_root=ba0426cc5569ef1d...
+20698	1788314207	forge-daemon	dispatch.rs mleg order dispatch behind ALL gates; 22/22 green	PROVEN	cargo test incl refuse-before-spawn proofs	-	FINDING: simmed 29-wide condor trips own 2pct veto on 100k - strategy wing cap needed; mleg limit-price sign UNVERIFIED vs live API`;
+
+        function parseTSV(tsv) {
+            const lines = tsv.trim().split('\\n');
+            const headers = lines[0].split('\\t');
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split('\\t');
+                let row = {};
+                for (let j = 0; j < headers.length; j++) {
+                    row[headers[j]] = values[j];
+                }
+                data.push(row);
+            }
+            return data;
+        }
+
+        function getLadderBadge(ladder) {
+            if (ladder === 'VERIFIED') return '<span class="badge-verified">VERIFIED</span>';
+            if (ladder === 'PROVEN') return '<span class="badge-proven">PROVEN</span>';
+            if (ladder === 'UNVERIFIED') return '<span class="badge-unverified">UNVERIFIED</span>';
+            return ladder;
+        }
+
+        function populateTable() {
+            const data = parseTSV(rawTsvData);
+            const tbody = document.getElementById('ledgerBody');
+            
+            // Render rows in reverse chronological order (newest first)
+            data.reverse().forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>\${row.day}</td>
+                    <td>\${row.secs}</td>
+                    <td style="color: var(--accent);">\${row.crate}</td>
+                    <td>\${row.claim}</td>
+                    <td>\${getLadderBadge(row.ladder)}</td>
+                    <td><small>\${row.oracle_1}</small></td>
+                    <td><small>\${row.oracle_2}</small></td>
+                    <td><small style="color: #666;">\${row.receipt}</small></td>
+                `;
+                
+                tr.addEventListener('click', () => {
+                    document.getElementById('detailPanel').style.display = 'block';
+                    document.getElementById('detCrate').innerText = row.crate;
+                    document.getElementById('detClaim').innerText = row.claim;
+                    document.getElementById('detReceipt').innerText = row.receipt + "\\n\\nOracle 1: " + row.oracle_1 + "\\nOracle 2: " + row.oracle_2;
+                });
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.onload = populateTable;
+    </script>
+</body>
+</html>
