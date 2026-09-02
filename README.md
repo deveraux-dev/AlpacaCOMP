@@ -7,7 +7,7 @@
   [![Rust](https://img.shields.io/badge/Rust-no__std-orange.svg)]()
 </div>
 
----
+--- 
 
 ## Overview
 
@@ -15,15 +15,40 @@
 
 Unlike conventional AI bots that rely on unpredictable LLM outputs, 13forge enforces a rigorous architectural philosophy to guarantee execution safety and bounded risk: the model is never trusted with an order.
 
-## 📊 Live Metrics & Verified Claims
+## 📊 The Claim-Proof Ledger
 
-| Metric | Value | Verification |
-|--------|-------|--------------|
-| **Audited Win Rate** | `55.4%` | Verified (Paper Account) |
-| **Profit Factor** | `1.73` | Verified (Paper Account) |
-| **Risk Guardrail Latency** | `1.5 µs` | Verified (Benchmarked) |
+Our core thesis for this hackathon: *no claim is shown as verified unless it has a receipt.* Below is the definitive mapping of how our "Zero-Claims Doctrine" fulfills the judging criteria.
 
-> **Note on Verification:** All limits and guardrails are hardcoded in the `strategy` and `dispatch` layers. No trade is submitted to the Alpaca API unless it passes, in order: the position-state DAG, the oracle verdict veto, the market-purity chaos gate, the leg-geometry check, and the 2% maximum-loss bounds check. The multi-leg `limit_price` sign convention (credit = negative) is verified against Alpaca's documentation and pinned by test. Every risk decision is computed in exact integer fields, so the same inputs produce the same gate verdict bit-for-bit — there is no floating-point path where accumulation order changes whether an order fires.
+### Live Execution Claims
+| Claim | Status | Proof Source | Judge Angle |
+|-------|--------|--------------|-------------|
+| **Oracle verdict can veto an order.** | **LIVE** | `DispatchRefusal::VerdictVeto` in `dispatch_spread` | **Pawel, Tony** (Arbiter verdict blocks execution) |
+| **Position-state DAG gates live dispatch first.** | **LIVE** | `LIVE_ORDER_DAG.validate_path` is gate one in `dispatch_spread`; pinned by `open_on_top_of_open_is_refused_before_every_other_gate` | **Tony, Pawel** (Illegal transitions refused before CLI) |
+| **Market purity/chaos can veto an order.** | **LIVE** | volume-mass N×IPR band [400,7500] pmy -> `DispatchRefusal::ChaoticBook` (recalibrated 2026-09-02, see `docs/REPORT-2026-09-02.md`) | **Tony, Pawel** (Chaotic market structure stops execution) |
+| **2% max-loss veto blocks unsafe spreads.** | **LIVE** | `exceeds_max_loss_veto` test | **Tony, Chiranjeev** (Margin safety, 0 syscalls) |
+| **Alpaca mleg credit price is negative.** | **VERIFIED** | `mleg_body` test, negative limit price pinning | **Brandon** (API correctness) |
+| **Order JSON is sent through stdin.** | **LIVE** | `cli.run_with_stdin` in `dispatch_spread` | **Brandon** (Payload leakage prevention) |
+
+### Strategy Claims
+| Claim | Status | Proof Source | Judge Angle |
+|-------|--------|--------------|-------------|
+| **Strategy builds from real chain quotes.** | **TESTED** | `build_iron_condor` / `build_iron_butterfly` | **Pawel, Tony** (No model-invented strikes) |
+| **Wing cap pulls over-wide wings inward.** | **TESTED** | `max_wing_width` parameter | **Tony** (Keeps trades inside risk ceiling) |
+
+### Support Components
+| Claim | Status | Proof Source | Judge Angle |
+|-------|--------|--------------|-------------|
+| **`forge-gate` is `no_std`.** | **LIVE** | `#![no_std]` in `crates/forge-gate/src/lib.rs` | **Brandon** (Bare-metal constraints) |
+| **Merkle seal / evidence chain.** | **PROVEN** | `.forge/proof-ledger.tsv` | **Chiranjeev** (Unassailable receipts) |
+
+### Metrics (Pending Fresh Receipts)
+*The following metrics require fresh session receipts before we call them verified on the demo portal:*
+- **55.4% Win Rate** ⚠️ `[NEEDS RECEIPT]`
+- **1.73 Profit Factor** ⚠️ `[NEEDS RECEIPT]`
+- **1.5 µs Risk Guardrail Latency** ⚠️ `[NEEDS RECEIPT]`
+- **118 Tests Green** ⚠️ `[NEEDS FRESH SESSION RECEIPT]`
+
+> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the state transition, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
 
 ## 🧠 The Zero Generative Law
 
