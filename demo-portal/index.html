@@ -3,414 +3,177 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>13forge Proof Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #090b0a;
-      --bg-gradient: radial-gradient(circle at top right, #111a14, #090b0a 60%);
-      --text-main: #f0f4f1;
-      --text-muted: #94a399;
-      --border: rgba(255, 255, 255, 0.1);
-      --glass-bg: rgba(255, 255, 255, 0.03);
-      --glass-hover: rgba(255, 255, 255, 0.06);
-      
-      --accent-live: #00d27a;
-      --accent-live-bg: rgba(0, 210, 122, 0.15);
-      --accent-refused: #ff4757;
-      --accent-refused-bg: rgba(255, 71, 87, 0.15);
-      --accent-tested: #2e86de;
-      --accent-tested-bg: rgba(46, 134, 222, 0.15);
-      --accent-pending: #ffa502;
-      --accent-pending-bg: rgba(255, 165, 2, 0.15);
-    }
-
-    * { box-sizing: border-box; }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-      color: var(--text-main);
-      background: var(--bg);
-      background-image: var(--bg-gradient);
-      min-height: 100vh;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    main {
-      width: min(1120px, calc(100% - 40px));
-      margin: 0 auto;
-      padding: 40px 0 60px;
-    }
-
-    section {
-      animation: fadeInUp 0.6s ease-out both;
-    }
-    section:nth-child(2) { animation-delay: 0.1s; }
-    section:nth-child(3) { animation-delay: 0.2s; }
-    section:nth-child(4) { animation-delay: 0.3s; }
-    section:nth-child(5) { animation-delay: 0.4s; }
-    section:nth-child(6) { animation-delay: 0.5s; }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 40px;
-      align-items: center;
-      padding: 40px 0 60px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    h1 {
-      margin: 0 0 16px;
-      font-size: clamp(42px, 6vw, 76px);
-      line-height: 1.05;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    h2 {
-      margin: 0 0 16px;
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-
-    h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
-    }
-
-    p { margin: 0; }
-
-    .lead {
-      max-width: 600px;
-      font-size: 20px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .hero img {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-      display: block;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .hero img:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 25px 50px rgba(0,210,122,0.1);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin: 40px 0;
-    }
-
-    .card, .wide {
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      transition: all 0.3s ease;
-    }
-
-    .card:hover {
-      background: var(--glass-hover);
-      transform: translateY(-4px);
-      border-color: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    .wide {
-      margin: 24px 0;
-    }
-    .wide:hover {
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 4px 10px;
-      border-radius: 20px;
-      margin-bottom: 16px;
-    }
-
-    .live { color: var(--accent-live); background: var(--accent-live-bg); }
-    .tested { color: var(--accent-tested); background: var(--accent-tested-bg); }
-    .pending { color: var(--accent-pending); background: var(--accent-pending-bg); }
-    .refused { color: var(--accent-refused); background: var(--accent-refused-bg); }
-
-    .path {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 16px;
-      margin-top: 24px;
-    }
-
-    .step {
-      min-height: 110px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.02);
-      padding: 16px;
-      position: relative;
-      transition: all 0.3s ease;
-    }
-    
-    .step:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: var(--accent-live);
-      transform: translateY(-3px);
-    }
-
-    .step::after {
-      content: '→';
-      position: absolute;
-      right: -14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-weight: bold;
-    }
-    .step:last-child::after { display: none; }
-
-    .step strong {
-      display: block;
-      font-size: 15px;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-
-    .step span {
-      display: block;
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-
-    .proof {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      align-items: stretch;
-    }
-
-    .number {
-      font-size: 48px;
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: -0.03em;
-      margin: 8px 0 16px;
-    }
-    
-    .proof .card:first-child .number { color: var(--accent-refused); }
-    .proof .card:last-child .number { color: var(--accent-live); }
-
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-top: 20px;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-      font-size: 14px;
-    }
-
-    th {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      font-weight: 700;
-      padding-bottom: 12px;
-    }
-
-    tbody tr {
-      transition: background 0.2s ease;
-    }
-    tbody tr:hover {
-      background: rgba(255,255,255,0.02);
-    }
-
-    tr:last-child td { border-bottom: 0; }
-
-    code {
-      font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-      font-size: 0.9em;
-      background: rgba(255,255,255,0.08);
-      color: #e0e0e0;
-      padding: 3px 6px;
-      border-radius: 4px;
-    }
-
-    .footer {
-      color: var(--text-muted);
-      font-size: 13px;
-      padding-top: 40px;
-      text-align: center;
-      border-top: 1px solid var(--border);
-      margin-top: 40px;
-    }
-
-    @media (max-width: 960px) {
-      .hero { grid-template-columns: 1fr; text-align: center; }
-      .lead { margin: 0 auto; }
-      .path { grid-template-columns: 1fr 1fr; }
-      .step::after { display: none; }
-    }
-
-    @media (max-width: 768px) {
-      .grid, .proof { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 520px) {
-      main { width: min(100% - 24px, 1120px); padding-top: 24px; }
-      .path { grid-template-columns: 1fr; }
-      h1 { font-size: 38px; }
-      .number { font-size: 40px; }
-    }
-  </style>
+  <meta name="description" content="Replay the deterministic safety checks that stopped an unsafe options trade before it reached Alpaca.">
+  <title>13forge | Proof Portal</title>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main>
-    <section class="hero">
-      <div>
-        <div class="tag live">Proof-first Alpaca options agent</div>
-        <h1>13forge</h1>
-        <p class="lead">A model can propose a trade. The system only submits it after deterministic gates approve the oracle verdict, market structure, leg geometry, and max-loss ceiling.</p>
-      </div>
-      <img src="../patex_alpaca.png" alt="13forge Alpaca proof artifact">
-    </section>
+  <a class="skip-link" href="#proof-replay">Skip to proof replay</a>
 
-    <section class="grid" aria-label="Project proof summary">
-      <article class="card">
-        <div class="tag live">Live path</div>
-        <h2>One guarded door</h2>
-        <p>All live order submission flows through <code>dispatch_spread</code> before the Alpaca CLI/API call.</p>
-      </article>
-      <article class="card">
-        <div class="tag refused">Main proof</div>
-        <h2>Unsafe trade refused</h2>
-        <p>The simmed 29-wide condor trips the 2 percent max-loss veto and never reaches the subprocess.</p>
-      </article>
-      <article class="card">
-        <div class="tag tested">Receipts</div>
-        <h2>No claim without proof</h2>
-        <p>README, video, and UI wording should trace to code, tests, ledger rows, or Alpaca paper receipts.</p>
-      </article>
-    </section>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="13forge proof portal home">
+      <span class="brand-mark" aria-hidden="true">13</span>
+      <span>13forge</span>
+    </a>
+    <nav aria-label="Portal navigation">
+      <a href="#proof-replay">Replay</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#architecture">System</a>
+    </nav>
+    <a class="header-link" href="../docs/CLAIM_PROOF_MAP.md">Proof map</a>
+  </header>
 
-    <section class="wide">
-      <div class="tag live">Execution path</div>
-      <h2>What controls a live order</h2>
-      <div class="path">
-        <div class="step"><strong>Oracle</strong><span>Unauthorized verdicts block execution.</span></div>
-        <div class="step"><strong>Purity</strong><span>Chaotic market structure is refused.</span></div>
-        <div class="step"><strong>Geometry</strong><span>Malformed spread legs are blocked.</span></div>
-        <div class="step"><strong>2% ceiling</strong><span>Max-loss bound is the final risk clamp.</span></div>
-        <div class="step"><strong>Alpaca CLI</strong><span>mleg JSON is sent through stdin.</span></div>
+  <main id="top">
+    <section class="intro" aria-labelledby="intro-title">
+      <div class="eyebrow"><span class="status-dot"></span> Recorded safety proof</div>
+      <h1 id="intro-title">Would this AI trade reach Alpaca?</h1>
+      <p>AI proposes the trade. Deterministic Rust checks decide whether execution is allowed. Replay the real oversized-condor case that the risk gate refused.</p>
+      <div class="plain-flow" aria-label="System summary">
+        <span>AI suggests</span><span aria-hidden="true">→</span>
+        <strong>Rust verifies</strong><span aria-hidden="true">→</span>
+        <span>Alpaca receives passed orders only</span>
       </div>
     </section>
 
-    <section class="proof">
-      <article class="card">
-        <div class="tag refused">Rejected condor receipt</div>
-        <h2>Risk gate refusal</h2>
-        <p class="number">$2,525 &gt; $2,000</p>
-        <p>A 29-wide put wing with $3.75 credit has max loss above the 2 percent ceiling on a $100,000 account. The dispatch test pins this as <code>DispatchRefusal::MaxLossVeto</code>.</p>
-      </article>
-      <article class="card">
-        <div class="tag live">Alpaca mleg convention</div>
-        <h2>Credit price is negative</h2>
-        <p class="number">-3.28</p>
-        <p>The mleg body test proves a $3.28 credit serializes as <code>"-3.28"</code>. Debit prices are positive; credit prices are negative.</p>
-      </article>
+    <section class="replay-shell" id="proof-replay" aria-labelledby="replay-title">
+      <div class="replay-heading">
+        <div>
+          <p class="section-label">Decision replay</p>
+          <h2 id="replay-title">Oversized iron condor</h2>
+        </div>
+        <span class="mode-badge">Static evidence, no live order</span>
+      </div>
+
+      <div class="replay-grid">
+        <article class="proposal-panel" aria-labelledby="proposal-title">
+          <div class="panel-heading">
+            <h3 id="proposal-title">AI proposal</h3>
+            <span class="proposal-state">Ready to check</span>
+          </div>
+
+          <dl class="trade-facts">
+            <div><dt>Structure</dt><dd>Iron condor</dd></div>
+            <div><dt>Put wing width</dt><dd>29 points</dd></div>
+            <div><dt>Net credit</dt><dd>$3.75</dd></div>
+            <div><dt>Account balance</dt><dd>$100,000</dd></div>
+            <div><dt>Risk ceiling</dt><dd>2% · $2,000</dd></div>
+            <div><dt>Calculated max loss</dt><dd class="danger-text">$2,525</dd></div>
+          </dl>
+
+          <button class="primary-action" id="run-check" type="button">
+            Run safety checks
+            <span aria-hidden="true">→</span>
+          </button>
+          <p class="action-note">Replays a code-backed test case. It does not contact Alpaca.</p>
+        </article>
+
+        <article class="gate-panel" aria-labelledby="gate-title">
+          <div class="panel-heading">
+            <h3 id="gate-title">Safe order path</h3>
+            <button class="text-action" id="reset-check" type="button">Reset</button>
+          </div>
+
+          <ol class="gate-list">
+            <li class="gate" data-gate="oracle">
+              <span class="gate-index">01</span>
+              <span class="gate-copy"><strong>AI permission check</strong><small>Only an authorized verdict may continue.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate" data-gate="market">
+              <span class="gate-index">02</span>
+              <span class="gate-copy"><strong>Market stability check</strong><small>Unstable market structure stops the order.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate" data-gate="geometry">
+              <span class="gate-index">03</span>
+              <span class="gate-copy"><strong>Trade structure check</strong><small>All option legs must form a valid spread.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate" data-gate="risk">
+              <span class="gate-index">04</span>
+              <span class="gate-copy"><strong>Maximum-loss check</strong><small>Potential loss must stay below 2%.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate broker-gate" data-gate="broker">
+              <span class="gate-index">05</span>
+              <span class="gate-copy"><strong>Alpaca submission</strong><small>Reached only after every check passes.</small></span>
+              <span class="gate-status">Locked</span>
+            </li>
+          </ol>
+
+          <div class="decision" id="decision" role="status" aria-live="polite">
+            <span class="decision-icon" aria-hidden="true">?</span>
+            <span><strong>Awaiting replay</strong><small>Run the checks to see the code-backed verdict.</small></span>
+          </div>
+        </article>
+      </div>
     </section>
 
-    <section class="wide">
-      <div class="tag tested">Claim status</div>
-      <h2>What we can safely say</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Claim</th>
-            <th>Status</th>
-            <th>Receipt</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Order-state DAG</td>
-            <td class="tested">Tested</td>
-            <td><code>order_dag.rs</code>: Built/tested state machine; not claimed as live dispatch gate yet</td>
-          </tr>
-          <tr>
-            <td>Wing cap pulls to quoted legal strikes</td>
-            <td class="tested">Tested</td>
-            <td><code>strategy.rs</code>: <code>wing_cap_pulls_delta_selected_wing_inside_cap</code></td>
-          </tr>
-          <tr>
-            <td>Fredholm/residue, Merkle seal, API pacer</td>
-            <td class="tested">Support</td>
-            <td>Built/tested support components; not claimed as live dispatch gates here</td>
-          </tr>
-          <tr>
-            <td>Win rate, profit factor, latency</td>
-            <td class="pending">Needs receipt</td>
-            <td>Show only after benchmark/account/ledger receipt is attached</td>
-          </tr>
-        </tbody>
-      </table>
+    <section class="evidence-section" id="evidence" aria-labelledby="evidence-title">
+      <div class="section-heading">
+        <p class="section-label">Why it was refused</p>
+        <h2 id="evidence-title">The numbers cross the hard limit</h2>
+        <p>No prediction or model opinion decides this result. A fixed, tested risk rule compares the calculated loss with the account ceiling.</p>
+      </div>
+
+      <div class="equation" aria-label="Maximum loss calculation">
+        <div><span>Wing risk</span><strong>29 × $100</strong><small>$2,900</small></div>
+        <span class="operator" aria-hidden="true">−</span>
+        <div><span>Credit received</span><strong>$3.75 × 100</strong><small>$375</small></div>
+        <span class="operator" aria-hidden="true">=</span>
+        <div class="equation-result"><span>Maximum loss</span><strong>$2,525</strong><small>$525 over limit</small></div>
+      </div>
+
+      <div class="receipt-grid">
+        <article class="receipt-card refusal-receipt">
+          <div class="receipt-topline"><span>Decision receipt</span><span>LIVE PATH</span></div>
+          <p class="receipt-verdict">REFUSED</p>
+          <p><strong>$2,525</strong> potential loss exceeds the <strong>$2,000</strong> ceiling.</p>
+          <div class="receipt-footer"><code>DispatchRefusal::MaxLossVeto</code><span>Broker process not started</span></div>
+        </article>
+
+        <article class="receipt-card">
+          <div class="receipt-topline"><span>Price-format receipt</span><span>VERIFIED</span></div>
+          <p class="credit-value">-3.28</p>
+          <p>A $3.28 net credit is serialized as a negative limit price. Debit prices are positive.</p>
+          <div class="receipt-footer"><code>credit_entry_limit_price_is_negative...</code><span>Test-backed</span></div>
+        </article>
+      </div>
     </section>
 
-    <section class="wide">
-      <div class="tag live">Panel fit</div>
-      <h2>Why this matters</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Judge lens</th>
-            <th>Portal proof</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Brokerage risk</td><td>Defined-risk spreads, 2 percent max-loss veto.</td></tr>
-          <tr><td>Trading API engineering</td><td>Valid Alpaca mleg payloads, negative credit price, stdin CLI body.</td></tr>
-          <tr><td>Developer workflow</td><td>Receipts, simple commands, readable proof map.</td></tr>
-          <tr><td>Transparency</td><td>Every displayed claim maps to a code/test/ledger source.</td></tr>
-          <tr><td>Agent innovation</td><td>Strategist can suggest; deterministic sentinel decides whether execution is allowed.</td></tr>
-        </tbody>
-      </table>
-    </section>
+    <section class="architecture-section" id="architecture" aria-labelledby="architecture-title">
+      <div class="section-heading compact-heading">
+        <p class="section-label">System map</p>
+        <h2 id="architecture-title">Creative AI, deterministic control</h2>
+        <p>The model is useful for proposing a thesis. It never gets direct authority to place an order.</p>
+      </div>
 
-    <p class="footer">Source map: <code>docs/CLAIM_PROOF_MAP.md</code>. This portal is intentionally static: no invented live balances, fills, or metrics.</p>
+      <div class="architecture-flow">
+        <article><span class="flow-number">1</span><h3>Strategist</h3><p>Produces a constrained trade thesis.</p></article>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <article class="control-node"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>Check permission, market stability, structure, and maximum loss.</p></article>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <article><span class="flow-number">3</span><h3>Alpaca</h3><p>Receives a structured order only after every gate passes.</p></article>
+      </div>
+
+      <div class="claim-board">
+        <div class="claim-board-heading">
+          <div><p class="section-label">Claim discipline</p><h3>What this portal can prove</h3></div>
+          <a href="../docs/CLAIM_PROOF_MAP.md">Read complete proof map →</a>
+        </div>
+        <div class="claim-row"><span class="claim-state live-state">Live</span><strong>Risk and structure checks control the order path</strong><span>Backed by dispatch code and refusal tests</span></div>
+        <div class="claim-row"><span class="claim-state verified-state">Verified</span><strong>Credit prices serialize as negative values</strong><span>Backed by an Alpaca convention test</span></div>
+        <div class="claim-row"><span class="claim-state tested-state">Tested</span><strong>Strategy uses quoted strikes and pulls wings inside the cap</strong><span>Backed by strategy tests</span></div>
+        <div class="claim-row"><span class="claim-state support-state">Support</span><strong>State DAG, Merkle seal, Fredholm residue, API pacer</strong><span>Built components, not presented as live gates</span></div>
+      </div>
+    </section>
   </main>
+
+  <footer>
+    <div><strong>13forge</strong><span>Proof-first autonomous options execution</span></div>
+    <p>This static portal shows recorded, receipt-backed behavior. It contains no credentials, live balances, or invented performance metrics.</p>
+  </footer>
+
+  <script src="./app.js"></script>
 </body>
 </html>
