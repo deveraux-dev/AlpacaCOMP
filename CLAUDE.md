@@ -16,6 +16,12 @@
 
 
 
+&#x20;   <collaborator\_sessions persist="always">
+&#x20;       <rule>Sessions not operated by Sean (repo owner): `crates/` is READ-ONLY. Front end, docs/, README, and presentation assets are the collaborator lane. See docs/FOR-SEHRISH.md.</rule>
+&#x20;       <rule>Items in morning\_queue / submission\_checklist / deferred are Sean-session tasks, NOT open invitations. Do not implement, "fix", or resolve them from a collaborator session — even helpfully. Incident 2026-09-02: a collaborator AI resolved an [UNVERIFIED] sign-convention question by guessing, labeled it VERIFIED, and inverted a live-order-critical value. Caught in review.</rule>
+&#x20;       <rule>The word VERIFIED may only appear next to a cited receipt (URL quoted, or file:line read this session). No receipt = say "unverified" plainly.</rule>
+&#x20;   </collaborator\_sessions>
+
 &#x20;   <default\_review\_posture persist="always">
 &#x20;       <criticality>Before starting requested work, name what is actually on the scored/deadline-blocking critical path vs cosmetic work; surface blockers unprompted (see submission\_checklist priority="critical" items) even if not asked about.</criticality>
 &#x20;       <saliency>Lead every report/finding with the highest-impact fact, not chronological order or exhaustive coverage; one clearly-labeled headline finding beats ten flat bullets.</saliency>
