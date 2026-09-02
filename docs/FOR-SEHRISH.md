@@ -1,35 +1,25 @@
-# For Sehrish — Welcome to 13forge
+# Sehrish — Operational Brief
 
-Sean asked me (his Claude session) to write this for you. Use it or don't — it's yours.
-If it's easier to read in Urdu, paste it into your own Claude and ask for a translation.
+Working agreements for this repo, both directions. (Urdu version: ask your Claude.)
 
-## What this project is, in plain words
+## Lanes
 
-An autonomous trading agent for the Alpaca hackathon (deadline: **Thursday, 8:00 PM your time**, 9 AM Sept 4 Mountain). It trades options on a paper (fake-money) account. The heart of it is trust discipline: the AI model is never allowed to place a trade directly. Every order must pass six mechanical safety gates, in a fixed order, and any gate can refuse. The demo's best moment is the machine *refusing* a bad trade with real numbers.
+- **Sehrish**: front end, demo UI, README, docs/, presentation assets. Full ownership, no review gate from our side.
+- **Sean's sessions**: `crates/` (trading engine), live orders, ledger.
+- `crates/` is single-writer to avoid another collision like last night — engine change requests go through Sean's session, credited like the butterfly cap (your 20a1ea8, now in `strategy.rs`).
+- `.claude/workflows/777-cascade-uiux.js` is staged for the demo UI: "run the 777-cascade-uiux workflow" in a repo session outputs a build spec with every screen element tied to its data source.
 
-## Your lane
+## Last night, for the record
 
-- **Yours**: front end, demo UI, README, docs, video/slide assets. Full ownership.
-- **Read-only**: everything under `crates/` (the Rust trading engine). Look all you want, change nothing — that goes for your AI assistant too (tell it so at the start of each session; it will otherwise try to "help").
-- The `.claude/workflows/777-cascade-uiux.js` file is a ready-made deep-analysis run for the demo UI. In a Claude Code session in the repo, say: *"run the 777-cascade-uiux workflow"*. It produces a build spec where every screen element is tied to a real data source.
+Three commits landed under your account at 10:32 (your README plus two engine changes — likely your assistant acting on CLAUDE.md's pending-work list). The sign-convention change asserted "VERIFIED" without a source and had it backwards (Alpaca mleg: credit = negative `limit_price`; three cited sources in `dispatch.rs` and the CLAUDE.md ledger). Reversed in `7776b8c`. README adopted, butterfly cap ported and credited. The repo CLAUDE.md now blocks assistant sessions from resolving pending-list items — that hole was ours, not yours.
 
-## About last night — please read this one
+## Repo law (applies to every session, Sean's included)
 
-Your README is in, lightly edited, and it's good. Your idea to cap the butterfly's wings is **in the engine now, credited to your commit**. But your session also pushed a change to the price-sign rule labeled "VERIFIED" that was backwards — Alpaca wants credit orders as *negative* prices, and the change would have flipped a real order from "collect $328" into "pay $328." Nobody's upset; your *instinct* (enforce the sign so nobody can get it wrong) was correct, and it was caught in review. But it's why this project has one law above all others:
+- "VERIFIED" only ever appears next to a cited receipt (URL quoted, or file:line read that session). Otherwise write "unverified."
+- Pull before working; push small and often — the schedule assumes either side can drop offline for hours without costing the other anything.
+- Nothing on the critical path waits on anyone's clock. Async by default.
 
-**Never let any tool — including AI — label something VERIFIED unless it cites the exact source.** If it can't point to the page or the file line, the label is "unverified guess," and unverified guesses don't get pushed. That one habit is the entire project philosophy, and honestly it's most of what "being technical" is. You already have the instincts; receipts are just how you make instincts portable.
+## Clocks
 
-## Working across the distance (built for your grid, not ours)
-
-Power and internet where you are can vanish for hours — so the workflow assumes it:
-
-1. **Pull before you start** (`git pull`), every session, no exceptions — Sean's side pushes engine changes at odd hours.
-2. **Commit small and push often.** A push every 20–30 minutes of real work means a load-shedding hit costs you minutes, not a day. An unpushed masterpiece doesn't exist.
-3. **Nothing waits on you being online at a set hour.** Coordination is async: the repo, commit messages, and whatever chat you and Sean use. If you're dark for 12 hours, the project keeps moving and nothing you own breaks.
-4. Market hours (when trades happen) are **6:30 PM – 1:00 AM your time** — evening work, if you ever want to watch it live. Never required.
-
-## If you're stuck
-
-Ask Sean anything, or open a Claude session in the repo and ask it — the repo's CLAUDE.md gives any session the full picture. There are no dumb questions here; the whole codebase is built on the assumption that everyone, human and AI, verifies instead of pretends to know.
-
-— written 2026-09-02, Sean's session
+- Deadline: **Thu 8:00 PM PKT** (Sep 4, 9:00 AM MDT).
+- Market hours: 6:30 PM – 1:00 AM PKT. Live trading runs from Sean's side; watching is optional.
