@@ -21,7 +21,7 @@ Every risk decision is computed in exact integer fields (permyriad fixed-point, 
 
 ## Receipts over claims
 
-118 tests pin the behavior, and the refusals are the exhibit: the test suite proves an oversized condor ($2,525 worst-case on a $100k account) is vetoed at the 2% max-loss gate, and on our first live day the agent ran fully unattended under bounded pre-authorization (qty 1, credit floor, negative-limit convention verified against three Alpaca sources and pinned by test) — and refused all three dispatch windows on the purity gate, correctly, because its input mass carried no signal. The miscalibration was then proven by replay, fixed from measurement, and re-armed — every refusal, thesis token, and verdict in the ledger (see `REPORT-2026-09-02.md`). Zero orders risked on an untrusted signal is the system working.
+120 tests pin the behavior, and the refusals are the exhibit: the test suite proves an oversized condor ($2,525 worst-case on a $100k account) is vetoed at the 2% max-loss gate, and on our first live day the agent ran fully unattended under bounded pre-authorization (qty 1, credit floor, negative-limit convention verified against three Alpaca sources and pinned by test) — and refused all three dispatch windows on the purity gate, correctly, because its input mass carried no signal. The miscalibration was then proven by replay, fixed from measurement, and re-armed — every refusal, thesis token, and verdict in the ledger (see `REPORT-2026-09-02.md`). Zero orders risked on an untrusted signal is the system working.
 
 ## Alpaca integration
 
