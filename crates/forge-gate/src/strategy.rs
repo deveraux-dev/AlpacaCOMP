@@ -156,15 +156,8 @@ pub fn build_iron_condor(
         widest_put_wing_within(quotes, short_put.strike, max_wing_width)?
     };
 
-    let call_wing = (long_call.strike - short_call.strike).abs();
-    let put_wing = (long_put.strike - short_put.strike).abs();
-
     if long_call.strike <= short_call.strike || long_put.strike >= short_put.strike {
         return None; // Wings must sit outside the short strikes; refuse otherwise.
-    }
-    
-    if call_wing > max_wing_width || put_wing > max_wing_width {
-        return None; // Refuse if the wings are too wide to satisfy the strategy risk constraints.
     }
 
     Some([
@@ -179,20 +172,26 @@ pub fn build_iron_condor(
 /// call and put body, buy `wing_delta` wings on each side. Same
 /// polysynthetic assembly rule as [`build_iron_condor`]: body + both wings
 /// must each clear `max_deviation`, or the whole build aborts.
+/// `max_wing_width` mirrors [`build_iron_condor`]: over-wide honest wings
+/// pull in to the widest quoted strike inside the cap, never rescue a
+/// missing delta. (Cap-on-butterfly idea: partner's 20a1ea8.)
 pub fn build_iron_butterfly(quotes: &[ChainQuote], wing_delta: f64, max_deviation: f64, max_wing_width: f64) -> Option<[Leg; 4]> {
     // Body strike: the call delta closest to 0.50 (ATM).
     let body = nearest_call_delta(quotes, 0.50, max_deviation)?;
-    let long_call = nearest_call_delta(quotes, wing_delta, max_deviation)?;
-    let long_put = nearest_put_delta(quotes, wing_delta, max_deviation)?;
-
-    let call_wing = (long_call.strike - body.strike).abs();
-    let put_wing = (long_put.strike - body.strike).abs();
+    let delta_call = nearest_call_delta(quotes, wing_delta, max_deviation)?;
+    let long_call = if delta_call.strike - body.strike <= max_wing_width {
+        delta_call
+    } else {
+        widest_call_wing_within(quotes, body.strike, max_wing_width)?
+    };
+    let delta_put = nearest_put_delta(quotes, wing_delta, max_deviation)?;
+    let long_put = if body.strike - delta_put.strike <= max_wing_width {
+        delta_put
+    } else {
+        widest_put_wing_within(quotes, body.strike, max_wing_width)?
+    };
 
     if long_call.strike <= body.strike || long_put.strike >= body.strike {
-        return None;
-    }
-
-    if call_wing > max_wing_width || put_wing > max_wing_width {
         return None;
     }
 
@@ -285,7 +284,7 @@ mod tests {
     #[test]
     fn builds_iron_butterfly_from_atm_body_and_wings() {
         let chain = synthetic_chain();
-        let legs = build_iron_butterfly(&chain, 0.05, 0.01, f64::INFINITY).expect("butterfly should build");
+        let legs = build_iron_butterfly(&chain, 0.05, 0.01, 100.0).expect("butterfly should build");
 
         assert_eq!(legs[0], Leg { strike: 100.0, is_call: true, side: Side::Sell });
         assert_eq!(legs[1], Leg { strike: 100.0, is_call: false, side: Side::Sell });
@@ -318,7 +317,7 @@ mod tests {
             ChainQuote { strike: 100.0, call_delta: 0.50, put_delta: -0.50 },
             ChainQuote { strike: 105.0, call_delta: 0.16, put_delta: -0.80 },
         ];
-        assert!(build_iron_butterfly(&thin_chain, 0.05, 0.02, f64::INFINITY).is_none());
+        assert!(build_iron_butterfly(&thin_chain, 0.05, 0.02, 100.0).is_none());
     }
 
     #[test]

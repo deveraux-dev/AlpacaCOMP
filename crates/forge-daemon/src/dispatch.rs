@@ -62,10 +62,8 @@ pub fn mleg_body(root: &str, yymmdd: &str, legs: &[Leg; 4], qty: u32, limit_pric
             )
         })
         .collect();
-        
-    let signed_limit_price = limit_price.abs();
     format!(
-        r#"{{"order_class":"mleg","qty":"{qty}","type":"limit","limit_price":"{signed_limit_price:.2}","time_in_force":"day","legs":[{}]}}"#,
+        r#"{{"order_class":"mleg","qty":"{qty}","type":"limit","limit_price":"{limit_price:.2}","time_in_force":"day","legs":[{}]}}"#,
         leg_json.join(",")
     )
 }

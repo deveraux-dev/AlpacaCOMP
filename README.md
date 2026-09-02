@@ -1,7 +1,7 @@
 <div align="center">
-  
+
   <h1>13forge</h1>
-  <p><i>"Sub-millisecond, zero-allocation execution engine, deterministic, self healing control loop but I'm terrible with money."</i></p>
+  <p><i>"Sub-millisecond, zero-allocation execution engine, deterministic control loop — but I'm terrible with money."</i></p>
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
   [![Rust](https://img.shields.io/badge/Rust-no__std-orange.svg)]()
@@ -11,9 +11,9 @@
 
 ## Overview
 
-13forge is a high-frequency options trading engine built entirely in Rust. Designed for ultra-low latency trading environments, it strictly adheres to `#[no_std]` constraints where possible, achieving **zero heap allocations** and **lock-free concurrency**. 
+13forge is an autonomous options-trading agent built entirely in Rust. The gate lattice strictly adheres to `#[no_std]` constraints, achieving **zero heap allocations** and **lock-free concurrency** on the decision path.
 
-Unlike conventional AI bots that rely on unpredictable LLM outputs, 13forge enforces a rigorous architectural philosophy to guarantee execution safety, risk mitigation, and profitability.
+Unlike conventional AI bots that rely on unpredictable LLM outputs, 13forge enforces a rigorous architectural philosophy to guarantee execution safety and bounded risk: the model is never trusted with an order.
 
 ## 📊 Live Metrics & Verified Claims
 
@@ -23,7 +23,7 @@ Unlike conventional AI bots that rely on unpredictable LLM outputs, 13forge enfo
 | **Profit Factor** | `1.73` | Verified (Paper Account) |
 | **Risk Guardrail Latency** | `1.5 µs` | Verified (Benchmarked) |
 
-> **Note on Verification:** All limits and guardrails are hardcoded in the `strategy` and `dispatch` layers. No trade is submitted to the Alpaca API unless it passes the 2% maximum-loss bounds check. The multi-leg `limit_price` sign convention is rigidly enforced.
+> **Note on Verification:** All limits and guardrails are hardcoded in the `strategy` and `dispatch` layers. No trade is submitted to the Alpaca API unless it passes, in order: the position-state DAG, the oracle verdict veto, the market-purity chaos gate, the leg-geometry check, and the 2% maximum-loss bounds check. The multi-leg `limit_price` sign convention (credit = negative) is verified against Alpaca's documentation and pinned by test. Every risk decision is computed in exact integer fields, so the same inputs produce the same gate verdict bit-for-bit — there is no floating-point path where accumulation order changes whether an order fires.
 
 ## 🧠 The Zero Generative Law
 
@@ -42,7 +42,7 @@ graph TD
     C -->|Pass| E[Strategy Assembly]
     E -->|Reads| F[(ChainQuote <br> Market Data)]
     E --> G[Alpaca API]
-    
+
     style A fill:#111,stroke:#333,stroke-width:2px,color:#fff
     style B fill:#222,stroke:#444,color:#fff
     style C fill:#d63031,stroke:#ff7675,stroke-width:2px,color:#fff
@@ -52,28 +52,31 @@ graph TD
     style G fill:#fbc531,color:#111,stroke-width:2px
 ```
 
-## ⚙️ Setup & Deployment Guide
+## ⚙️ Setup & Verification Guide
 
-To run the engine locally or deploy it to a live instance, ensure you have Rust installed and your Alpaca paper credentials set in your environment. **We strictly avoid writing secrets to disk.**
+Ensure you have Rust installed and your Alpaca paper credentials set in your environment. **We strictly avoid writing secrets to disk.**
 
 ```bash
 # 1. Set your Alpaca V2 paper credentials (session-only)
 export APCA_API_KEY_ID="your_key_id"
 export APCA_API_SECRET_KEY="your_secret_key"
 
-# 2. Build the project in release mode for ultra-low latency
-cargo build --release
+# 2. Run the full gate-lattice test suite (118 tests)
+cargo test -p forge-gate -p forge-daemon
 
-# 3. Start the autonomous daemon loop
-cargo run --release --bin forge-daemon
+# 3. Dry-run today's strategy selection against the live SPY chain (no orders placed)
+cargo run --example sim_today -p forge-daemon
+
+# 4. Live account smoke test (GET /v2/account only)
+cargo run --example live_smoke -p forge-daemon
 ```
 
 ## ✅ Hackathon Submission Checklist
 
 - [x] **Account Verification**: Confirm fresh Alpaca paper account balance is exactly `$100,000`. (Status: `ACTIVE`, Buying Power: `$400,000`)
 - [x] **Judging ID**: Retrieve new Alpaca Account ID for official P&L judging. (Account ID: `PA3FMNQT9WDW`)
-- [x] **Technical Repository**: Publish public GitHub repository and demo URL.
-- [ ] **Write-Up**: Finalize 1-page write-up detailing `D=T+F+R` logic, 1.5 µs risk gates, and Alpaca CLI/MCP infrastructure.
+- [ ] **Technical Repository**: Publish public GitHub repository and demo URL.
+- [ ] **Write-Up**: Finalize 1-page write-up detailing `D=T+F+R` logic, 1.5 µs risk gates, and Alpaca CLI infrastructure.
 - [ ] **Presentation Assets**: Compile video presentation, slide deck, and cover image.
 - [ ] **Build-in-Public**: Publish Build-in-Public posts on X/LinkedIn tagging `@lablabai` and `@AlpacaHQ`.
 
