@@ -13,7 +13,7 @@ Our agent is bicameral: two model chambers and a deterministic spine, with one r
 - **Chamber one (Strategist)** and **chamber two (Risk Sentinel)** may only emit S13 thesis tokens: 13-lane balanced-ternary vectors (−1/0/+1). They cannot emit a strike, a quantity, a price, or JSON. The channel is too narrow to hallucinate through.
 - A **deterministic arbiter** (`oracle_arbiter.rs`) compares the chambers' tokens and issues one of four verdicts. Disagreement is a first-class outcome: it refuses the trade.
 - **Strategy assembly** (`strategy.rs`) builds spreads *only* from real chain quotes. If the 5-delta wing isn't quoted, it refuses — it never substitutes. Wing width is capped so worst-case loss respects the risk gate by construction.
-- The **execution airlock** (`dispatch.rs`) runs six gates in fixed order — position-state DAG (no open-on-open, ever), oracle verdict, market-purity chaos gate, leg geometry, max-loss veto, then and only then the API subprocess. A refused order costs zero syscalls.
+- The **execution airlock** (`dispatch.rs`) runs five gates in fixed order — oracle verdict, market-purity chaos gate, leg geometry, max-loss veto, then and only then the API subprocess. A refused order costs zero syscalls.
 
 ## Deterministic to the bit
 
@@ -31,4 +31,4 @@ The oracle seam is live: dispatch requires two S13 theses (`--bull`/`--bear`, 13
 
 **Roadmap** (named plainly, not shipped): dedicated local S13-Gemma chambers replacing the general-purpose LLM at the seam, activation-level chamber coupling, drawdown auto-flatten, NOSTR broadcast of the sealed decision feed for public auditability.
 
-*Win rate 55.4%, profit factor 1.73 (audited paper history). The metric we're proudest of is different: zero orders, ever, that a human or model asserted into existence without a receipt.*
+*Win rate 55.4%, profit factor 1.73 (audited paper history; pending fresh live receipts for final demo). The metric we're proudest of is different: zero orders, ever, that a human or model asserted into existence without a receipt.*

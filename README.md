@@ -22,7 +22,6 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 ### Live Execution Claims
 | Claim | Status | Proof Source | Judge Angle |
 |-------|--------|--------------|-------------|
-| **Position-state DAG gates live dispatch first.** | **LIVE** | `LIVE_ORDER_DAG`, `DispatchRefusal::IllegalTransition` | **Tony, Pawel** (Illegal transitions refused before CLI) |
 | **Oracle verdict can veto an order.** | **LIVE** | `DispatchRefusal::VerdictVeto` in `dispatch_spread` | **Pawel, Tony** (Arbiter verdict blocks execution) |
 | **Market purity/chaos can veto an order.** | **LIVE** | `purity.is_chaotic()` -> `DispatchRefusal::ChaoticBook` | **Tony, Pawel** (Chaotic market structure stops execution) |
 | **2% max-loss veto blocks unsafe spreads.** | **LIVE** | `exceeds_max_loss_veto` test | **Tony, Chiranjeev** (Margin safety, 0 syscalls) |
@@ -38,6 +37,7 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 ### Support Components
 | Claim | Status | Proof Source | Judge Angle |
 |-------|--------|--------------|-------------|
+| **Order-state DAG.** | **TESTED** | `order_dag.rs` | **Tony, Pawel** (Built/tested state machine; not live yet) |
 | **`forge-gate` is `no_std`.** | **LIVE** | `#![no_std]` in `crates/forge-gate/src/lib.rs` | **Brandon** (Bare-metal constraints) |
 | **Merkle seal / evidence chain.** | **PROVEN** | `.forge/proof-ledger.tsv` | **Chiranjeev** (Unassailable receipts) |
 
@@ -48,7 +48,7 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 - **1.5 µs Risk Guardrail Latency** ⚠️ `[NEEDS RECEIPT]`
 - **118 Tests Green** ⚠️ `[NEEDS FRESH SESSION RECEIPT]`
 
-> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the state transition, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
+> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
 
 ## 🧠 The Zero Generative Law
 
