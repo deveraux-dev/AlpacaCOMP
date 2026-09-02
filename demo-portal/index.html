@@ -4,208 +4,297 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>13forge Proof Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      color-scheme: light;
-      --ink: #17201a;
-      --muted: #5b665f;
-      --line: #d8ded8;
-      --paper: #f7f6f1;
-      --panel: #ffffff;
-      --green: #1f7a4d;
-      --red: #b43b32;
-      --amber: #a8661f;
-      --blue: #265b87;
+      color-scheme: dark;
+      --bg: #090b0a;
+      --bg-gradient: radial-gradient(circle at top right, #111a14, #090b0a 60%);
+      --text-main: #f0f4f1;
+      --text-muted: #94a399;
+      --border: rgba(255, 255, 255, 0.1);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-hover: rgba(255, 255, 255, 0.06);
+      
+      --accent-live: #00d27a;
+      --accent-live-bg: rgba(0, 210, 122, 0.15);
+      --accent-refused: #ff4757;
+      --accent-refused-bg: rgba(255, 71, 87, 0.15);
+      --accent-tested: #2e86de;
+      --accent-tested-bg: rgba(46, 134, 222, 0.15);
+      --accent-pending: #ffa502;
+      --accent-pending-bg: rgba(255, 165, 2, 0.15);
     }
 
     * { box-sizing: border-box; }
 
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--ink);
-      background: var(--paper);
-      line-height: 1.5;
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      color: var(--text-main);
+      background: var(--bg);
+      background-image: var(--bg-gradient);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
 
     main {
-      width: min(1120px, calc(100% - 32px));
+      width: min(1120px, calc(100% - 40px));
       margin: 0 auto;
-      padding: 32px 0 48px;
+      padding: 40px 0 60px;
     }
+
+    section {
+      animation: fadeInUp 0.6s ease-out both;
+    }
+    section:nth-child(2) { animation-delay: 0.1s; }
+    section:nth-child(3) { animation-delay: 0.2s; }
+    section:nth-child(4) { animation-delay: 0.3s; }
+    section:nth-child(5) { animation-delay: 0.4s; }
+    section:nth-child(6) { animation-delay: 0.5s; }
 
     .hero {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 28px;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 40px;
       align-items: center;
-      padding: 24px 0 28px;
-      border-bottom: 1px solid var(--line);
+      padding: 40px 0 60px;
+      border-bottom: 1px solid var(--border);
     }
 
     h1 {
-      margin: 0 0 12px;
-      font-size: clamp(38px, 6vw, 72px);
-      line-height: 0.95;
-      letter-spacing: 0;
+      margin: 0 0 16px;
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     h2 {
-      margin: 0 0 12px;
-      font-size: 22px;
-      letter-spacing: 0;
+      margin: 0 0 16px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
     }
 
     h3 {
       margin: 0 0 8px;
       font-size: 16px;
-      letter-spacing: 0;
     }
 
     p { margin: 0; }
 
     .lead {
-      max-width: 680px;
-      font-size: 19px;
-      color: var(--muted);
+      max-width: 600px;
+      font-size: 20px;
+      color: var(--text-muted);
+      line-height: 1.5;
     }
 
     .hero img {
       width: 100%;
-      border: 1px solid var(--line);
-      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
       display: block;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hero img:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 50px rgba(0,210,122,0.1);
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin: 22px 0;
+      gap: 24px;
+      margin: 40px 0;
     }
 
     .card, .wide {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      background: var(--glass-hover);
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
     .wide {
-      margin: 16px 0;
+      margin: 24px 0;
+    }
+    .wide:hover {
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .tag {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0;
-      color: var(--muted);
-      margin-bottom: 10px;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 16px;
     }
 
-    .live { color: var(--green); }
-    .tested { color: var(--blue); }
-    .pending { color: var(--amber); }
-    .refused { color: var(--red); }
+    .live { color: var(--accent-live); background: var(--accent-live-bg); }
+    .tested { color: var(--accent-tested); background: var(--accent-tested-bg); }
+    .pending { color: var(--accent-pending); background: var(--accent-pending-bg); }
+    .refused { color: var(--accent-refused); background: var(--accent-refused-bg); }
 
     .path {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin-top: 14px;
+      gap: 16px;
+      margin-top: 24px;
     }
 
     .step {
-      min-height: 92px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fbfbf8;
-      padding: 12px;
+      min-height: 110px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      padding: 16px;
+      position: relative;
+      transition: all 0.3s ease;
     }
+    
+    .step:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--accent-live);
+      transform: translateY(-3px);
+    }
+
+    .step::after {
+      content: '→';
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-weight: bold;
+    }
+    .step:last-child::after { display: none; }
 
     .step strong {
       display: block;
-      font-size: 14px;
-      margin-bottom: 6px;
+      font-size: 15px;
+      color: #fff;
+      margin-bottom: 8px;
     }
 
     .step span {
       display: block;
-      font-size: 12px;
-      color: var(--muted);
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
 
     .proof {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 24px;
       align-items: stretch;
     }
 
     .number {
-      font-size: 40px;
+      font-size: 48px;
       font-weight: 800;
       line-height: 1;
-      letter-spacing: 0;
-      margin: 4px 0 8px;
+      letter-spacing: -0.03em;
+      margin: 8px 0 16px;
     }
+    
+    .proof .card:first-child .number { color: var(--accent-refused); }
+    .proof .card:last-child .number { color: var(--accent-live); }
 
     table {
       width: 100%;
-      border-collapse: collapse;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 20px;
     }
 
     th, td {
       text-align: left;
-      padding: 12px;
-      border-bottom: 1px solid var(--line);
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
       vertical-align: top;
       font-size: 14px;
     }
 
     th {
-      background: #ecefeb;
       font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0;
-      color: var(--muted);
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding-bottom: 12px;
+    }
+
+    tbody tr {
+      transition: background 0.2s ease;
+    }
+    tbody tr:hover {
+      background: rgba(255,255,255,0.02);
     }
 
     tr:last-child td { border-bottom: 0; }
 
     code {
       font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-      font-size: 0.92em;
-      background: #eef1ed;
-      padding: 2px 5px;
+      font-size: 0.9em;
+      background: rgba(255,255,255,0.08);
+      color: #e0e0e0;
+      padding: 3px 6px;
       border-radius: 4px;
     }
 
     .footer {
-      color: var(--muted);
+      color: var(--text-muted);
       font-size: 13px;
-      padding-top: 14px;
+      padding-top: 40px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
     }
 
-    @media (max-width: 860px) {
-      .hero, .proof { grid-template-columns: 1fr; }
-      .grid { grid-template-columns: 1fr; }
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; text-align: center; }
+      .lead { margin: 0 auto; }
       .path { grid-template-columns: 1fr 1fr; }
+      .step::after { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .grid, .proof { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 520px) {
-      main { width: min(100% - 20px, 1120px); padding-top: 18px; }
+      main { width: min(100% - 24px, 1120px); padding-top: 24px; }
       .path { grid-template-columns: 1fr; }
-      th, td { font-size: 13px; padding: 10px; }
-      .number { font-size: 34px; }
+      h1 { font-size: 38px; }
+      .number { font-size: 40px; }
     }
   </style>
 </head>
