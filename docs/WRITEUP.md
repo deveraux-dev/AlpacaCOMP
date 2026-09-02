@@ -27,6 +27,8 @@ Every risk decision is computed in exact integer fields (permyriad fixed-point, 
 
 Alpaca CLI subprocess for execution (credentials enter the child via env only, never argv or disk), Alpaca data API for chains, `order_class=mleg` limit orders with the credit-negative sign convention. Iron condors (16Δ short / 5Δ wings, capped) and landmark-triggered iron butterflies; 45-DTE entry, 50%-credit take-profit, 21-DTE time-stop.
 
-**Roadmap** (named plainly, not shipped): live LLM chambers wired to the arbiter seam (verdict currently conservative-stubbed), activation-level chamber coupling, drawdown auto-flatten, NOSTR broadcast of the sealed decision feed for public auditability.
+The oracle seam is live: dispatch requires two S13 theses (`--bull`/`--bear`, 13 characters of `+/0/-`) emitted by LLM chambers at decision time — an LLM's entire influence on a live order is 26 trits through one audited, arbitrated gate. Missing theses refuse pre-gate; overheated agreeing theses draw `CriticalEscalation` and a verdict veto (both demonstrated in the repo's dry runs).
+
+**Roadmap** (named plainly, not shipped): dedicated local S13-Gemma chambers replacing the general-purpose LLM at the seam, activation-level chamber coupling, drawdown auto-flatten, NOSTR broadcast of the sealed decision feed for public auditability.
 
 *Win rate 55.4%, profit factor 1.73 (audited paper history). The metric we're proudest of is different: zero orders, ever, that a human or model asserted into existence without a receipt.*

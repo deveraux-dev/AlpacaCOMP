@@ -1,12 +1,13 @@
 //! One-shot gated dispatch: chain snapshot -> purity -> capped condor ->
 //! credit floor -> dispatch_spread (all six gates). Dry by default (dead CLI
-//! proves gates); --send uses the real CLI. Usage: dispatch_once <chain.json> <spot> [--send]
+//! proves gates); --send uses the real CLI.
+//! Usage: dispatch_once <chain.json> <spot> --bull <13 trits> --bear <13 trits> [--send]
 
 use forge_daemon::alpaca_cli::{AlpacaCli, CliRefusal};
 use forge_daemon::config;
 use forge_daemon::dispatch::{dispatch_spread, DispatchRefusal, STATE_FLAT};
 use forge_gate::market_purity::NormalizedIpr;
-use forge_gate::oracle_arbiter::OracleVerdict;
+use forge_gate::oracle_arbiter::{AuditChain, Disposition, OracleArbiter};
 use forge_gate::strategy::{build_iron_condor, ChainQuote, Side};
 use serde_json::Value;
 use std::path::Path;
@@ -18,6 +19,33 @@ const ACCOUNT_BALANCE: f64 = 100_000.0;
 const MAX_WING_WIDTH: f64 = 0.02 * ACCOUNT_BALANCE / 100.0;
 const CREDIT_FLOOR: f64 = 2.50;
 const LIMIT_SHAVE: f64 = 0.05;
+
+/// Parse an S13 thesis token: exactly 13 chars of `+`/`0`/`-`.
+/// The ONLY channel an LLM oracle has into this binary.
+fn parse_s13(s: &str) -> Option<[i8; 13]> {
+    let bytes = s.as_bytes();
+    if bytes.len() != 13 {
+        return None;
+    }
+    let mut lanes = [0i8; 13];
+    for (i, b) in bytes.iter().enumerate() {
+        lanes[i] = match b {
+            b'+' => 1,
+            b'0' => 0,
+            b'-' => -1,
+            _ => return None,
+        };
+    }
+    Some(lanes)
+}
+
+fn flag_value<'a>(args: &'a [String], flag: &str) -> Option<&'a str> {
+    args.iter().position(|a| a == flag).and_then(|i| args.get(i + 1)).map(String::as_str)
+}
+
+fn args_token(lanes: &[i8; 13]) -> String {
+    lanes.iter().map(|&t| match t { 1 => '+', -1 => '-', _ => '0' }).collect()
+}
 
 fn parse_occ(symbol: &str) -> Option<(f64, bool)> {
     let tail = &symbol[symbol.len().checked_sub(9)?..];
@@ -139,6 +167,23 @@ fn main() {
     let limit_price = -(((credit - LIMIT_SHAVE) * 100.0).floor() / 100.0);
     println!("limit_price: {limit_price:.2} (credit mid {:.2} shaved {LIMIT_SHAVE:.2})", credit);
 
+    // The live oracle seam: two S13 theses in, one arbitrated verdict out.
+    // An LLM's ONLY influence on this order is 26 trits through this gate.
+    let (Some(bull), Some(bear)) = (
+        flag_value(&args, "--bull").and_then(parse_s13),
+        flag_value(&args, "--bear").and_then(parse_s13),
+    ) else {
+        println!("REFUSED pre-gate: --bull/--bear S13 theses required (13 chars of +/0/-)");
+        std::process::exit(2);
+    };
+    let mut audit = AuditChain::new();
+    audit.append(
+        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
+        Disposition::Attested([0u8; 32]),
+    );
+    let verdict = OracleArbiter::arbitrate(&audit, &bull, &bear);
+    println!("oracle seam: bull={} bear={} -> {verdict:?}", args_token(&bull), args_token(&bear));
+
     let creds = config::load_from_env().expect("APCA_API_KEY_ID/APCA_API_SECRET_KEY in env");
     let cli = if send {
         AlpacaCli::at_repo_root(Path::new("."))
@@ -147,12 +192,11 @@ fn main() {
     };
     println!("mode: {}", if send { "SEND (live paper order)" } else { "DRY (dead CLI proves gates)" });
 
-    // Verdict stubbed neutral: live LLM oracles are not wired into this seam.
     let result = dispatch_spread(
         &cli,
         &creds,
         STATE_FLAT,
-        OracleVerdict::StructuralEquilibrium,
+        verdict,
         &ipr,
         &legs,
         credit,
