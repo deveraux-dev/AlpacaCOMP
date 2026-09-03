@@ -11,13 +11,11 @@
     (function() {
       try {
         var savedTheme = localStorage.getItem('theme');
-        var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-        // Dark is default. Only switch to light if explicitly saved, OR if there is no saved preference AND they prefer light (Wait, user said: "do not automatically choose Light Mode from prefers-color-scheme when no preference exists").
-        // So ONLY switch to light if explicitly saved as 'light'.
-        if (savedTheme === 'light') {
-          document.documentElement.setAttribute('data-theme', 'light');
+        // Light is default as per preference
+        if (savedTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
         } else {
-          document.documentElement.setAttribute('data-theme', 'dark'); // explicit dark default
+          document.documentElement.setAttribute('data-theme', 'light');
         }
       } catch (e) {}
     })();
@@ -38,10 +36,11 @@
       <a href="#architecture">System</a>
     </nav>
     <div style="display: flex; gap: 16px; align-items: center; justify-self: end;">
-      <span style="font-size: 0.85rem; font-weight: 500; color: var(--muted); border: 1px solid var(--line); padding: 4px 10px; border-radius: 4px; background: var(--surface-quiet);">
-        Recorded proof
-      </span>
       <a class="header-link" href="../docs/CLAIM_PROOF_MAP.md">Proof map</a>
+      <span class="engine-pill">
+        <span class="pulse-dot"></span>
+        ENGINE SYNCING...
+      </span>
       <button id="theme-toggle" aria-label="Toggle theme" style="background:transparent;border:0;cursor:pointer;color:var(--ink);display:grid;place-items:center;padding:4px;">
         <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
         <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
@@ -193,14 +192,14 @@
       </div>
 
       <div class="architecture-flow">
-        <article><span class="flow-number">1</span><h3>Strategist</h3><p>Produces a constrained trade thesis.</p></article>
+        <article class="panel-box"><span class="flow-number">1</span><h3>Strategist</h3><p>Produces a constrained trade thesis.</p></article>
         <span class="flow-arrow" aria-hidden="true">→</span>
-        <article class="control-node"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>6 deterministic checks + broker destination.</p></article>
+        <article class="panel-box control-node"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>6 deterministic checks + broker destination.</p></article>
         <span class="flow-arrow" aria-hidden="true">→</span>
-        <article><span class="flow-number">3</span><h3>Alpaca</h3><p>Receives a structured order only after every gate passes.</p></article>
+        <article class="panel-box"><span class="flow-number">3</span><h3>Alpaca</h3><p>Receives a structured order only after every gate passes.</p></article>
       </div>
 
-      <div class="governor-explanation">
+      <div class="governor-explanation panel-box">
         <div>
           <h3>8-signal safety governor</h3>
           <p>The margin circuit breaker continuously monitors 8 strain axes. <strong>VENT</strong> is the hard dispatch stop in the current order path.</p>
