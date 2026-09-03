@@ -45,14 +45,16 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 *The following metrics require fresh session receipts before we call them verified on the demo portal:*
 - **55.4% Win Rate** ⏳ `[NEEDS RECEIPT]`
 - **1.73 Profit Factor** ⏳ `[NEEDS RECEIPT]`
-- **1.5 A-s Risk Guardrail Latency** ⏳ `[NEEDS RECEIPT]`
+- **1.5 microsecond Risk Guardrail Latency** ⏳ `[NEEDS RECEIPT]`
 - **159 Tests Green** ✅ `[VERIFIED: 110 gate + 36 daemon + 13 example]`
 
 > **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the margin strain (Governor), position-state DAG, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
 
-[**Explore the Live Proof Portal**](https://13forge-proof-portal-sehrishmajeed08-2635s-projects.vercel.app/demo-portal/)
+[**Explore the Live Proof Portal**](https://13forge-proof-portal.vercel.app/demo-portal/)
 
-*Demo Video Placeholder: [Watch the 3-Minute 13forge Walkthrough](https://youtube.com/placeholder)*
+[**Print the UI/UX Demo Packet**](https://13forge-proof-portal.vercel.app/demo-portal/print.html)
+
+*Demo video URL can be added after the final recording.*
 
 > **13forge** is a deterministic execution airlock. It prevents LLMs from writing live option orders by forcing them to negotiate through a bicameral S13 state vector, which is then verified against market structure and margin-physics limits before Alpaca is ever touched.
 
@@ -92,7 +94,7 @@ Ensure you have Rust installed and your Alpaca paper credentials set in your env
 export APCA_API_KEY_ID="your_key_id"
 export APCA_API_SECRET_KEY="your_secret_key"
 
-# 2. Run the full gate-lattice test suite (118 tests)
+# 2. Run the full gate-lattice test suite (159 tests)
 cargo test -p forge-gate -p forge-daemon
 
 # 3. Dry-run today's strategy selection against the live SPY chain (no orders placed)

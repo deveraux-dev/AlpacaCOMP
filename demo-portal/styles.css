@@ -151,6 +151,15 @@ nav a, .header-link {
 nav a:hover, nav a:focus-visible, .header-link:hover, .header-link:focus-visible { color: var(--ink); }
 .header-link { justify-self: end; }
 
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px 16px;
+  justify-self: end;
+}
+
 /* Engine Syncing Indicator */
 .engine-pill {
   display: inline-flex;
@@ -521,7 +530,9 @@ footer p { max-width: 570px; text-align: right; }
 
 @media (max-width: 640px) {
   .site-header { min-height: 56px; padding: 0 16px; }
+  .header-actions { gap: 6px 10px; }
   .header-link { font-size: 12px; }
+  .engine-pill { display: none; }
   main, footer { width: min(100% - 24px, 1180px); }
   .intro { padding-top: 42px; }
   h1 { font-size: 40px; }

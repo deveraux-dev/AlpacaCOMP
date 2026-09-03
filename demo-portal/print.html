@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Printable UI/UX packet for the 13forge proof portal demo.">
+  <title>13forge | UI/UX Demo Packet</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111713;
+      --muted: #536157;
+      --line: #cfd7d0;
+      --surface: #ffffff;
+      --canvas: #f5f6f3;
+      --green: #087a4b;
+      --red: #b4232f;
+      --blue: #245f91;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    main {
+      width: min(920px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 44px 0 56px;
+    }
+    header {
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--ink);
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: 42px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+    p { margin: 0 0 12px; }
+    a { color: var(--blue); font-weight: 750; }
+    section {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .card {
+      min-height: 120px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .card strong,
+    .step strong { display: block; }
+    .muted { color: var(--muted); }
+    .step {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .step:last-child { border-bottom: 0; }
+    .num {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid var(--ink);
+      font: 800 12px ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    .receipt {
+      padding: 18px;
+      border: 2px solid var(--red);
+      background: #fff4f5;
+    }
+    code {
+      padding: 2px 5px;
+      border: 1px solid var(--line);
+      background: #f0f2ef;
+      font-size: 0.92em;
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    li { margin: 7px 0; }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .button {
+      display: inline-flex;
+      min-height: 40px;
+      align-items: center;
+      padding: 0 14px;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .button.primary {
+      background: var(--ink);
+      color: #fff;
+    }
+    @media (max-width: 720px) {
+      main { width: min(100% - 24px, 920px); padding-top: 28px; }
+      h1 { font-size: 34px; }
+      .grid { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+    }
+    @media print {
+      body { background: #fff; }
+      main { width: 100%; padding: 0; }
+      .actions { display: none; }
+      section { break-inside: avoid; }
+      a { color: var(--ink); text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">13forge UI/UX packet</p>
+      <h1>One proof-first demo for Alpaca AI Trading Agents judges</h1>
+      <p class="muted">Canonical portal: <a href="https://13forge-proof-portal.vercel.app/demo-portal/">https://13forge-proof-portal.vercel.app/demo-portal/</a></p>
+      <div class="actions" aria-label="Packet actions">
+        <a class="button primary" href="./index.html">Open portal</a>
+        <a class="button" href="javascript:window.print()">Print packet</a>
+      </div>
+    </header>
+
+    <section>
+      <h2>Selected Option</h2>
+      <p>Use option 2 as the only judge-facing demo. It is direct, static, receipt-backed, and focused on the feature that matters: an AI-proposed options trade cannot reach Alpaca until deterministic Rust gates allow it.</p>
+      <div class="grid">
+        <div class="card"><strong>What judges see first</strong><span class="muted">A replayable unsafe-trade refusal, not a landing page.</span></div>
+        <div class="card"><strong>What stays hidden</strong><span class="muted">Credentials, live order calls, private account details, and unsupported performance claims.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Demo Flow</h2>
+      <div class="step"><span class="num">01</span><p><strong>Intro</strong><span class="muted">AI suggests the trade; Rust decides whether execution is allowed.</span></p></div>
+      <div class="step"><span class="num">02</span><p><strong>Replay</strong><span class="muted">Run the oversized iron condor through the visible gate sequence.</span></p></div>
+      <div class="step"><span class="num">03</span><p><strong>Verdict</strong><span class="muted">The max-loss gate refuses before the Alpaca submission step is reached.</span></p></div>
+      <div class="step"><span class="num">04</span><p><strong>Receipts</strong><span class="muted">Show the risk equation, typed refusal, price-sign test, and claim map.</span></p></div>
+    </section>
+
+    <section>
+      <h2>Proof Receipt</h2>
+      <div class="receipt">
+        <p><strong>Result: refused before Alpaca</strong></p>
+        <p><code>DispatchRefusal::MaxLossVeto</code></p>
+        <p>$2,525 maximum loss is above the $2,000 account ceiling, so the broker process is not reached.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Print Checklist</h2>
+      <ul>
+        <li>Print this packet and the live portal in light mode.</li>
+        <li>Use the README link as the public source of truth.</li>
+        <li>Bring `docs/CLAIM_PROOF_MAP.md` when judges ask for exact receipt mapping.</li>
+        <li>Do not present option 1 or option 3 as separate demos.</li>
+        <li>Do not describe win rate, profit factor, or latency as verified without fresh receipts.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
