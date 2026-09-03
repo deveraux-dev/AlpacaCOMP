@@ -131,3 +131,11 @@ toggleBtn.addEventListener('click', () => {
   }
   lucide.createIcons();
 });
+
+// Mouse Tracking for Spotlight Glow Effect
+document.body.addEventListener("pointermove", (e) => {
+  const { currentTarget: el, clientX: x, clientY: y } = e;
+  const { top: t, left: l, width: w, height: h } = el.getBoundingClientRect();
+  el.style.setProperty('--mouse-x', (x - l));
+  el.style.setProperty('--mouse-y', (y - t));
+});
