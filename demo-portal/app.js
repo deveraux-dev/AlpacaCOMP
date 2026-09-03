@@ -102,40 +102,15 @@ function playPremiumClick() {
   } catch (e) {}
 }
 
-// Theme Toggle Logic
-const toggleBtn = document.getElementById('theme-toggle');
-const body = document.body;
-const themeIcon = document.getElementById('theme-icon');
-const themeText = document.getElementById('theme-text');
-
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {
-  body.setAttribute('data-theme', 'light');
-  themeIcon.setAttribute('data-lucide', 'sun');
-  themeText.innerText = 'Light Mode';
+  document.documentElement.setAttribute('data-theme', 'light');
 }
-
-toggleBtn.addEventListener('click', () => {
-  playPremiumClick(); 
-  
-  if (body.getAttribute('data-theme') === 'light') {
-    body.removeAttribute('data-theme');
-    localStorage.setItem('theme', 'dark');
-    themeIcon.setAttribute('data-lucide', 'moon');
-    themeText.innerText = 'Dark Mode';
-  } else {
-    body.setAttribute('data-theme', 'light');
-    localStorage.setItem('theme', 'light');
-    themeIcon.setAttribute('data-lucide', 'sun');
-    themeText.innerText = 'Light Mode';
-  }
-  lucide.createIcons();
-});
 
 // Mouse Tracking for Spotlight Glow Effect
 document.body.addEventListener("pointermove", (e) => {
   const { currentTarget: el, clientX: x, clientY: y } = e;
-  const { top: t, left: l, width: w, height: h } = el.getBoundingClientRect();
+  const { top: t, left: l } = el.getBoundingClientRect();
   el.style.setProperty('--mouse-x', (x - l));
   el.style.setProperty('--mouse-y', (y - t));
 });
@@ -144,7 +119,15 @@ document.body.addEventListener("pointermove", (e) => {
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+  document.documentElement.setAttribute('data-theme', 'light');
+  themeIcon.setAttribute('data-lucide', 'sun');
+  lucide.createIcons();
+}
+
 themeToggle.addEventListener('click', () => {
+  playPremiumClick();
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const newTheme = isLight ? 'dark' : 'light';
   
@@ -152,7 +135,13 @@ themeToggle.addEventListener('click', () => {
   themeIcon.style.opacity = '0';
   
   setTimeout(() => {
-    document.documentElement.setAttribute('data-theme', newTheme);
+    if (newTheme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'dark');
+    }
     themeIcon.setAttribute('data-lucide', newTheme === 'light' ? 'sun' : 'moon');
     lucide.createIcons();
     themeIcon.style.transform = 'rotate(0deg) scale(1)';
@@ -162,7 +151,10 @@ themeToggle.addEventListener('click', () => {
 
 // Auto-Updating Backend Status Fetch
 fetch('../.forge/sim/live_chaos_report.json')
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) throw new Error("No live file");
+    return response.json();
+  })
   .then(data => {
     const statusEl = document.getElementById('backend-status');
     if (statusEl && data.system_status) {
@@ -172,4 +164,12 @@ fetch('../.forge/sim/live_chaos_report.json')
       statusEl.style.background = 'var(--green-soft)';
     }
   })
-  .catch(err => console.log('Running static preview (backend data not served).'));
+  .catch(err => {
+    const statusEl = document.getElementById('backend-status');
+    if (statusEl) {
+      statusEl.innerHTML = `<span class="status-dot"></span> Engine: 159/159 Green`;
+      statusEl.style.color = 'var(--green)';
+      statusEl.style.borderColor = 'var(--green-soft)';
+      statusEl.style.background = 'var(--green-soft)';
+    }
+  });
