@@ -20,13 +20,16 @@
 ---
 
 ## Slide 3: Architecture
-**The 5-Step Execution Airlock**
+**The 5-Step Execution Airlock & Drawdown Physics**
 Orders pass through 5 deterministic, math-only gates before the Alpaca CLI is ever spawned. A refused order costs zero syscalls.
 1. **Oracle Verdict Veto:** Do the two models agree?
 2. **Purity / Chaos Gate:** Is the market structure safe (bid/ask spread valid)?
 3. **Leg Geometry:** Are the spread wings valid and quoted?
 4. **2% Max-Loss Veto:** Is the maximum potential loss mathematically under 2% of equity?
 5. **CLI Subprocess:** Only then is the order dispatched to Alpaca.
+
+**Autonomous Margin Strain Governor (Background Loop):**
+An autonomous 1-second loop tracks the physical derivatives of account equity—velocity and acceleration. If the account accelerates into a cliff (margin < 15% with high backpressure), it trips an irreversible circuit breaker, locking the order gate instantly.
 
 ---
 
