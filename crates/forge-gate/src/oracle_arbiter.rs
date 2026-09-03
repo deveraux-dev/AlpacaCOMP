@@ -200,6 +200,18 @@ pub const fn pack_s13_to_base243(lanes: &[i8; 13]) -> [u8; 3] {
 /// The static dual-oracle arbiter.
 pub struct OracleArbiter;
 
+/// Signed sum of Oracle A + Oracle B's combined lanes — the same value
+/// `arbitrate` collapses into `OracleVerdict`'s coarse bands, exposed here
+/// so a caller holding a `DirectionalVertical` pick can recover which way
+/// (bull/bear) it leans, without re-deriving or inventing a second signal.
+pub fn composite_gravity(oracle_a: &[i8; 13], oracle_b: &[i8; 13]) -> i32 {
+    let mut sum: i32 = 0;
+    for i in 0..13 {
+        sum += oracle_a[i] as i32 + oracle_b[i] as i32;
+    }
+    sum
+}
+
 impl OracleArbiter {
     /// Arbitrate Oracle A (Bull) and Oracle B (Bear) S13 theses via the
     /// pre-compiled DFA, in O(1) time with zero heap allocation.
@@ -215,10 +227,7 @@ impl OracleArbiter {
 
         // 2. Compute-at-rest DFA evaluation: composite gravity of the
         // combined Oracle A + Oracle B lanes.
-        let mut composite_gravity: i32 = 0;
-        for i in 0..13 {
-            composite_gravity += oracle_a[i] as i32 + oracle_b[i] as i32;
-        }
+        let composite_gravity = composite_gravity(oracle_a, oracle_b);
 
         if composite_gravity == 0 {
             OracleVerdict::StructuralEquilibrium
@@ -233,6 +242,20 @@ impl OracleArbiter {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn composite_gravity_matches_the_verdict_bands_it_drives() {
+        let mut a = [0i8; 13];
+        let mut b = [0i8; 13];
+        a[0] = 1;
+        a[5] = 1;
+        a[12] = 1; // sum 3: same fixture as test_scheduled_maintenance
+        assert_eq!(composite_gravity(&a, &b), 3);
+        b[0] = -1;
+        b[5] = -1;
+        b[12] = -1; // fully offsets: back to equilibrium
+        assert_eq!(composite_gravity(&a, &b), 0);
+    }
 
     #[test]
     fn test_empty_chain_is_breach() {

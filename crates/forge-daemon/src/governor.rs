@@ -10,7 +10,7 @@
 //! thermal axis was correctly left absent rather than faked with a stub.
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI8, AtomicU32, AtomicU64, Ordering};
 use std::time::Duration;
 use crate::bifurcation::{LiquidationDetector, LiquidationRisk};
 
@@ -42,6 +42,12 @@ pub struct AlpacaDaemonHealth {
     pub equity_bp: AtomicU64,
     /// Maintenance requirement in basis points.
     pub maintenance_bp: AtomicU64,
+    /// Governor's latest [`TrinaryState`] as `i8` (+1/0/-1), written once per
+    /// tick. `dispatch_spread` reads this as its cheapest, first-checked
+    /// gate — the feedback half of what was one-way telemetry. Derived
+    /// `Default` zero-inits this to `Hold` (0), not `Accumulate` (+1) —
+    /// safe, since only `Vent` (-1) trips the gate.
+    pub trinary_state: AtomicI8,
 }
 
 /// N-dimensional strain score. 0 = healthy, rising = stressed.
@@ -211,6 +217,7 @@ fn governor_loop(health: Arc<AlpacaDaemonHealth>) {
 
         peak.max_with(&score);
         trinary = score.trinary_state();
+        health.trinary_state.store(trinary as i8, Ordering::Relaxed);
 
         if tick % 60 == 0 {
             let state_str = match trinary {

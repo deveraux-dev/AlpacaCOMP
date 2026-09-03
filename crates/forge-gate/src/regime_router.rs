@@ -185,20 +185,35 @@ impl RegimeClass {
         }
     }
 
-    /// Advisory routing note. Only `SidewaysThetaBurn`/`EarningsIvCrush` map
-    /// to a strategy this crate actually ships (`strategy.rs`); the rest are
-    /// documented intent for a strategy set that doesn't exist here yet, and
-    /// `LiquidityVacuum`/`BearishPanic` are refuse-to-trade advisories, not
-    /// a strategy pick — `risk_router`/`order_dag` remain the actual veto.
+    /// Advisory routing note. All four tradeable classes now map to a
+    /// strategy this crate ships (`strategy.rs`); `LiquidityVacuum`/
+    /// `BearishPanic` remain refuse-to-trade advisories, not a strategy pick
+    /// — `risk_router`/`order_dag` remain the actual veto.
     pub const fn routing_note(self) -> &'static str {
         match self {
-            Self::BullishContango => "directional_bull_spread (not yet built)",
+            Self::BullishContango => "bull_put_spread",
             Self::BearishPanic => "no_trade_veto",
             Self::SidewaysThetaBurn => "iron_condor",
             Self::EarningsIvCrush => "iron_butterfly",
             Self::LiquidityVacuum => "critical_escalation_halt",
-            Self::SlowBleedBear => "directional_bear_spread (not yet built)",
-            Self::MeltUpBull => "directional_bull_spread (not yet built)",
+            Self::SlowBleedBear => "bear_call_spread",
+            Self::MeltUpBull => "bull_put_spread",
+        }
+    }
+
+    /// Maps a [`RegimeRouter::route`] `regime_id` back to its `RegimeClass`.
+    /// `None` for any id outside `0..NUM_REGIMES` (defensive — `route`
+    /// itself never returns one, since it only iterates `centroids`).
+    pub const fn from_index(id: usize) -> Option<Self> {
+        match id {
+            0 => Some(Self::BullishContango),
+            1 => Some(Self::BearishPanic),
+            2 => Some(Self::SidewaysThetaBurn),
+            3 => Some(Self::EarningsIvCrush),
+            4 => Some(Self::LiquidityVacuum),
+            5 => Some(Self::SlowBleedBear),
+            6 => Some(Self::MeltUpBull),
+            _ => None,
         }
     }
 }
@@ -427,22 +442,15 @@ mod tests {
             let point = make();
             let query = crate::market_collapse::collapse_market_to_query(point);
             let (id, _margin) = r.route(&query).unwrap();
-            assert_eq!(id, i, "archetype {i} ({}) must route to itself", RegimeClass::label(regime_class_of(i)));
+            assert_eq!(id, i, "archetype {i} ({}) must route to itself", RegimeClass::label(RegimeClass::from_index(i).unwrap()));
         }
     }
 
-    /// `RegimeClass` is `#[repr(u8)]` over `0..NUM_REGIMES`; every LUT index
-    /// used in tests comes from that same range, so this is a total match,
-    /// not a partial/unsafe cast.
-    fn regime_class_of(i: usize) -> RegimeClass {
-        match i {
-            0 => RegimeClass::BullishContango,
-            1 => RegimeClass::BearishPanic,
-            2 => RegimeClass::SidewaysThetaBurn,
-            3 => RegimeClass::EarningsIvCrush,
-            4 => RegimeClass::LiquidityVacuum,
-            5 => RegimeClass::SlowBleedBear,
-            _ => RegimeClass::MeltUpBull,
+    #[test]
+    fn from_index_round_trips_every_regime_class_and_refuses_out_of_range() {
+        for i in 0..NUM_REGIMES {
+            assert_eq!(RegimeClass::from_index(i).unwrap() as u8, i as u8);
         }
+        assert!(RegimeClass::from_index(NUM_REGIMES).is_none());
     }
 }
