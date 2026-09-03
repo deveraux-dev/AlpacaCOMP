@@ -33,7 +33,7 @@ async function runReplay() {
   runButton.disabled = true;
   runButton.firstChild.textContent = 'Checking ';
 
-  for (const gate of gates.slice(0, 4)) {
+  for (const gate of gates.slice(0, 5)) {
     gate.classList.add('is-checking');
     gate.querySelector('.gate-status').textContent = 'Checking';
     await delay(320);
@@ -42,7 +42,7 @@ async function runReplay() {
     gate.querySelector('.gate-status').textContent = 'Passed';
   }
 
-  const riskGate = gates[4];
+  const riskGate = gates[5];
   riskGate.classList.add('is-checking');
   riskGate.querySelector('.gate-status').textContent = 'Calculating';
   await delay(520);

@@ -115,33 +115,38 @@
           </div>
 
           <ol class="gate-list">
-            <li class="gate" data-gate="state">
+            <li class="gate" data-gate="governor">
               <span class="gate-index">01</span>
-              <span class="gate-copy"><strong>Position-state check</strong><small>Illegal order-state transitions are refused first.</small></span>
+              <span class="gate-copy"><strong>Margin strain check</strong><small>Governor circuit breaker must not be venting.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate" data-gate="state">
+              <span class="gate-index">02</span>
+              <span class="gate-copy"><strong>Position-state check</strong><small>Illegal order-state transitions are refused.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate" data-gate="oracle">
-              <span class="gate-index">02</span>
+              <span class="gate-index">03</span>
               <span class="gate-copy"><strong>AI permission check</strong><small>Only an authorized verdict may continue.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate" data-gate="market">
-              <span class="gate-index">03</span>
+              <span class="gate-index">04</span>
               <span class="gate-copy"><strong>Market stability check</strong><small>Unstable market structure stops the order.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate" data-gate="geometry">
-              <span class="gate-index">04</span>
+              <span class="gate-index">05</span>
               <span class="gate-copy"><strong>Trade structure check</strong><small>All option legs must form a valid spread.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate" data-gate="risk">
-              <span class="gate-index">05</span>
+              <span class="gate-index">06</span>
               <span class="gate-copy"><strong>Maximum-loss check</strong><small>Potential loss must stay below 2%.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate broker-gate" data-gate="broker">
-              <span class="gate-index">06</span>
+              <span class="gate-index">07</span>
               <span class="gate-copy"><strong>Alpaca submission</strong><small>Reached only after every check passes.</small></span>
               <span class="gate-status">Locked</span>
             </li>
