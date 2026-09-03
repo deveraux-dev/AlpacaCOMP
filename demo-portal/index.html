@@ -6,9 +6,25 @@
   <meta name="description" content="Replay the deterministic safety checks that stopped an unsafe options trade before it reached Alpaca.">
   <link rel="icon" href="data:,">
   <title>13forge | Proof Portal</title>
+  <script>
+    // Safe, non-blocking theme initialization to prevent FOUC
+    (function() {
+      try {
+        var savedTheme = localStorage.getItem('theme');
+        var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        // Dark is default. Only switch to light if explicitly saved, OR if there is no saved preference AND they prefer light (Wait, user said: "do not automatically choose Light Mode from prefers-color-scheme when no preference exists").
+        // So ONLY switch to light if explicitly saved as 'light'.
+        if (savedTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark'); // explicit dark default
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
+<body class="js-enabled">
   <a class="skip-link" href="#proof-replay">Skip to proof replay</a>
 
   <header class="site-header">
@@ -21,28 +37,39 @@
       <a href="#evidence">Evidence</a>
       <a href="#architecture">System</a>
     </nav>
-    <div style="display: flex; gap: 16px; align-items: center;">
-      <span style="font-size: 0.85rem; font-weight: 500; color: #00875a; display: flex; align-items: center; gap: 6px;">
-        <span style="display: inline-block; width: 6px; height: 6px; background-color: #00d27a; border-radius: 50%;"></span>
-        Engine: 159/159 Green
+    <div style="display: flex; gap: 16px; align-items: center; justify-self: end;">
+      <span style="font-size: 0.85rem; font-weight: 500; color: var(--muted); border: 1px solid var(--line); padding: 4px 10px; border-radius: 4px; background: var(--surface-quiet);">
+        Recorded proof
       </span>
       <a class="header-link" href="../docs/CLAIM_PROOF_MAP.md">Proof map</a>
+      <button id="theme-toggle" aria-label="Toggle theme" style="background:transparent;border:0;cursor:pointer;color:var(--ink);display:grid;place-items:center;padding:4px;">
+        <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+        <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+      </button>
     </div>
   </header>
 
   <main id="top">
-    <section class="intro" aria-labelledby="intro-title">
+    <section class="intro reveal" aria-labelledby="intro-title">
       <div class="eyebrow"><span class="status-dot"></span> Alpaca paper trading · recorded safety proof</div>
       <h1 id="intro-title">Would this AI trade reach Alpaca?</h1>
       <p>AI proposes the trade. Deterministic Rust checks decide whether execution is allowed. Replay the real oversized-condor case that the risk gate refused.</p>
-      <div class="plain-flow" aria-label="System summary">
-        <span>AI suggests</span><span aria-hidden="true">→</span>
-        <strong>Rust verifies</strong><span aria-hidden="true">→</span>
-        <span>Alpaca receives passed orders only</span>
+      
+      <div class="ai-safety-story">
+        <h2 class="section-label">Why an AI mistake cannot directly become an order</h2>
+        <div class="story-grid">
+          <div class="story-step"><span>AI</span><strong>Suggests the idea</strong></div>
+          <div class="story-arrow" aria-hidden="true">→</div>
+          <div class="story-step"><span>Rust</span><strong>Checks whether it is allowed</strong></div>
+          <div class="story-arrow" aria-hidden="true">→</div>
+          <div class="story-step"><span>Market Data</span><strong>Provides executable structure</strong></div>
+          <div class="story-arrow" aria-hidden="true">→</div>
+          <div class="story-step"><span>Alpaca</span><strong>Receives it only if safe</strong></div>
+        </div>
       </div>
     </section>
 
-    <section class="replay-shell" id="proof-replay" aria-labelledby="replay-title">
+    <section class="replay-shell reveal" id="proof-replay" aria-labelledby="replay-title">
       <div class="replay-heading">
         <div>
           <p class="section-label">Decision replay</p>
@@ -83,12 +110,12 @@
           <ol class="gate-list">
             <li class="gate" data-gate="governor">
               <span class="gate-index">01</span>
-              <span class="gate-copy"><strong>Margin strain check</strong><small>Governor circuit breaker checks for margin acceleration.</small></span>
+              <span class="gate-copy"><strong>Margin circuit breaker</strong><small>Blocks a new dispatch when account strain reaches the Governor’s VENT state.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate" data-gate="state">
               <span class="gate-index">02</span>
-              <span class="gate-copy"><strong>Position-state check</strong><small>Illegal order-state transitions are refused first.</small></span>
+              <span class="gate-copy"><strong>Position-state check</strong><small>Illegal order-state transitions are refused.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate" data-gate="oracle">
@@ -126,7 +153,7 @@
       </div>
     </section>
 
-    <section class="evidence-section" id="evidence" aria-labelledby="evidence-title">
+    <section class="evidence-section reveal" id="evidence" aria-labelledby="evidence-title">
       <div class="section-heading">
         <p class="section-label">Why it was refused</p>
         <h2 id="evidence-title">The numbers cross the hard limit</h2>
@@ -143,22 +170,22 @@
 
       <div class="receipt-grid">
         <article class="receipt-card refusal-receipt">
-          <div class="receipt-topline"><span>Decision receipt</span><span>LIVE PATH</span></div>
+          <div class="receipt-topline"><span>Decision receipt</span><span class="tag live-tag">LIVE PATH</span></div>
           <p class="receipt-verdict">REFUSED</p>
           <p><strong>$2,525</strong> potential loss exceeds the <strong>$2,000</strong> ceiling.</p>
           <div class="receipt-footer"><code>DispatchRefusal::MaxLossVeto</code><span>Broker process not started</span></div>
         </article>
 
         <article class="receipt-card">
-          <div class="receipt-topline"><span>Price-format receipt</span><span>VERIFIED</span></div>
+          <div class="receipt-topline"><span>Price-format receipt</span><span class="tag verified-tag">VERIFIED</span></div>
           <p class="credit-value">-3.28</p>
           <p>A $3.28 net credit is serialized as a negative limit price. Debit prices are positive.</p>
-          <div class="receipt-footer"><code>credit_entry_limit_price_is_negative...</code><span>Test-backed</span></div>
+          <div class="receipt-footer"><code>credit_entry_limit_price_is_negative_per_alpaca_mleg_convention</code><span>Test-backed</span></div>
         </article>
       </div>
     </section>
 
-    <section class="architecture-section" id="architecture" aria-labelledby="architecture-title">
+    <section class="architecture-section reveal" id="architecture" aria-labelledby="architecture-title">
       <div class="section-heading compact-heading">
         <p class="section-label">System map</p>
         <h2 id="architecture-title">Creative AI, deterministic control</h2>
@@ -168,9 +195,23 @@
       <div class="architecture-flow">
         <article><span class="flow-number">1</span><h3>Strategist</h3><p>Produces a constrained trade thesis.</p></article>
         <span class="flow-arrow" aria-hidden="true">→</span>
-        <article class="control-node"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>Check margin strain, position state, permission, market stability, structure, and maximum loss.</p></article>
+        <article class="control-node"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>6 deterministic checks + broker destination.</p></article>
         <span class="flow-arrow" aria-hidden="true">→</span>
         <article><span class="flow-number">3</span><h3>Alpaca</h3><p>Receives a structured order only after every gate passes.</p></article>
+      </div>
+
+      <div class="governor-explanation">
+        <div>
+          <h3>8-signal safety governor</h3>
+          <p>The margin circuit breaker continuously monitors 8 strain axes. <strong>VENT</strong> is the hard dispatch stop in the current order path.</p>
+        </div>
+        <div class="gov-states">
+          <span class="g-state">+1 ACCUMULATE</span>
+          <span class="g-arrow">→</span>
+          <span class="g-state">0 HOLD</span>
+          <span class="g-arrow">→</span>
+          <span class="g-state g-vent">-1 VENT</span>
+        </div>
       </div>
 
       <div class="claim-board">
@@ -178,6 +219,7 @@
           <div><p class="section-label">Claim discipline</p><h3>What this portal can prove</h3></div>
           <a href="../docs/CLAIM_PROOF_MAP.md">Read complete proof map →</a>
         </div>
+        <div class="claim-row"><span class="claim-state live-state">Live</span><strong>Governor VENT blocks dispatch before the other checks</strong><span>Backed by governor_vent_refuses_before_any_other_gate test</span></div>
         <div class="claim-row"><span class="claim-state live-state">Live</span><strong>State, risk, and structure checks control the order path</strong><span>Backed by dispatch code and refusal tests</span></div>
         <div class="claim-row"><span class="claim-state verified-state">Verified</span><strong>Credit prices serialize as negative values</strong><span>Backed by an Alpaca convention test</span></div>
         <div class="claim-row"><span class="claim-state tested-state">Tested</span><strong>Strategy uses quoted strikes and pulls wings inside the cap</strong><span>Backed by strategy tests</span></div>
