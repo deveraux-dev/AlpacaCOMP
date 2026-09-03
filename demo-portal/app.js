@@ -74,7 +74,7 @@ const delay = (milliseconds) => new Promise((resolve) => window.setTimeout(resol
 
 function setDecision(state, title, detail) {
   decision.className = `decision ${state}`.trim();
-  decision.querySelector('.decision-icon').textContent = state === 'is-refused' ? '×' : '?';
+  decision.querySelector('.decision-icon').textContent = state === 'is-refused' ? 'X' : '?';
   decision.querySelector('strong').textContent = title;
   decision.querySelector('small').textContent = detail;
 }

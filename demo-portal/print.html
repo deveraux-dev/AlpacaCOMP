@@ -34,6 +34,23 @@
       padding-bottom: 24px;
       border-bottom: 2px solid var(--ink);
     }
+    .packet-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .packet-logo {
+      width: 180px;
+      height: auto;
+      display: block;
+    }
+    .packet-brand span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
     .eyebrow {
       margin: 0 0 8px;
       color: var(--green);
@@ -126,6 +143,8 @@
     }
     @media (max-width: 720px) {
       main { width: min(100% - 24px, 920px); padding-top: 28px; }
+      .packet-brand { align-items: flex-start; flex-direction: column; }
+      .packet-logo { width: 154px; }
       h1 { font-size: 34px; }
       .grid { grid-template-columns: 1fr; }
       .actions { flex-direction: column; }
@@ -142,6 +161,10 @@
 <body>
   <main>
     <header>
+      <div class="packet-brand">
+        <img class="packet-logo" src="./assets/brand/13forge-logo.svg" alt="13forge">
+        <span>Hackathon judge packet</span>
+      </div>
       <p class="eyebrow">13forge UI/UX packet</p>
       <h1>One proof-first demo for Alpaca AI Trading Agents judges</h1>
       <p class="muted">Canonical portal: <a href="https://13forge-proof-portal.vercel.app/demo-portal/">https://13forge-proof-portal.vercel.app/demo-portal/</a></p>

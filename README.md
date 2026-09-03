@@ -4,125 +4,165 @@
     <img src="./demo-portal/assets/brand/13forge-logo.svg" width="260" alt="13forge">
   </picture>
 
-  <p><i>"Sub-millisecond, zero-allocation execution engine, deterministic control loop — but I'm terrible with money."</i></p>
+  <h1>AI can propose the trade. Rust decides if it is safe.</h1>
+  <p><i>A proof-first execution airlock for autonomous options trading.</i></p>
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
   [![Rust](https://img.shields.io/badge/Rust-no__std-orange.svg)]()
 </div>
 
---- 
+## Start here
 
-## Overview
+**[Open the live proof portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[Print the UI/UX demo packet](https://13forge-proof-portal.vercel.app/demo-portal/print.html)** | **[Read the source](https://github.com/deveraux-dev/AlpacaCOMP)**
 
-13forge is an autonomous options-trading agent built entirely in Rust. The gate lattice strictly adheres to `#[no_std]` constraints, achieving **zero heap allocations** and **lock-free concurrency** on the decision path.
+> **The 30-second version:** An AI may suggest an options trade, but it never gets a direct path to the broker. 13forge rebuilds the order from quoted market data, runs seven deterministic safety gates, and refuses the recorded trade when its calculated loss is `$2,525` against a `$2,000` ceiling. The broker process is never started.
 
-Unlike conventional AI bots that rely on unpredictable LLM outputs, 13forge enforces a rigorous architectural philosophy to guarantee execution safety and bounded risk: the model is never trusted with an order.
-
-## 📊 The Claim-Proof Ledger
-
-Our core thesis for this hackathon: *no claim is shown as verified unless it has a receipt.* Below is the definitive mapping of how our "Zero-Claims Doctrine" fulfills the judging criteria.
-
-### Live Execution Claims
-| Claim | Status | Proof Source | Judge Angle |
-|-------|--------|--------------|-------------|
-| **Oracle verdict can veto an order.** | **LIVE** | `DispatchRefusal::VerdictVeto` in `dispatch_spread` | **Pawel, Tony** (Arbiter verdict blocks execution) |
-| **Position-state DAG gates live dispatch first.** | **LIVE** | `LIVE_ORDER_DAG.validate_path` is gate one in `dispatch_spread`; pinned by `open_on_top_of_open_is_refused_before_every_other_gate` | **Tony, Pawel** (Illegal transitions refused before CLI) |
-| **Market purity/chaos can veto an order.** | **LIVE** | volume-mass N×IPR band [400,7500] pmy -> `DispatchRefusal::ChaoticBook` (recalibrated 2026-09-02, see `docs/REPORT-2026-09-02.md`) | **Tony, Pawel** (Chaotic market structure stops execution) |
-| **2% max-loss veto blocks unsafe spreads.** | **LIVE** | `exceeds_max_loss_veto` test | **Tony, Chiranjeev** (Margin safety, 0 syscalls) |
-| **Alpaca mleg credit price is negative.** | **VERIFIED** | `mleg_body` test, negative limit price pinning | **Brandon** (API correctness) |
-| **Order JSON is sent through stdin.** | **LIVE** | `cli.run_with_stdin` in `dispatch_spread` | **Brandon** (Payload leakage prevention) |
-
-### Strategy Claims
-| Claim | Status | Proof Source | Judge Angle |
-|-------|--------|--------------|-------------|
-| **Strategy builds from real chain quotes.** | **TESTED** | `build_iron_condor` / `build_iron_butterfly` | **Pawel, Tony** (No model-invented strikes) |
-| **Wing cap pulls over-wide wings inward.** | **TESTED** | `max_wing_width` parameter | **Tony** (Keeps trades inside risk ceiling) |
-
-### Support Components
-| Claim | Status | Proof Source | Judge Angle |
-|-------|--------|--------------|-------------|
-| **`forge-gate` is `no_std`.** | **LIVE** | `#![no_std]` in `crates/forge-gate/src/lib.rs` | **Brandon** (Bare-metal constraints) |
-| **Merkle seal / evidence chain.** | **PROVEN** | `.forge/proof-ledger.tsv` | **Chiranjeev** (Unassailable receipts) |
-
-### Metrics (Pending Fresh Receipts)
-*The following metrics require fresh session receipts before we call them verified on the demo portal:*
-- **55.4% Win Rate** ⏳ `[NEEDS RECEIPT]`
-- **1.73 Profit Factor** ⏳ `[NEEDS RECEIPT]`
-- **1.5 microsecond Risk Guardrail Latency** ⏳ `[NEEDS RECEIPT]`
-- **159 Tests Green** ✅ `[VERIFIED: 110 gate + 36 daemon + 13 example]`
-
-> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the margin strain (Governor), position-state DAG, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
-
-[**Explore the Live Proof Portal**](https://13forge-proof-portal.vercel.app/demo-portal/)
-
-[**Print the UI/UX Demo Packet**](https://13forge-proof-portal.vercel.app/demo-portal/print.html)
-
-[**Source Repository**](https://github.com/deveraux-dev/AlpacaCOMP)
-
-*Demo video URL can be added after the final recording.*
-
-## Collaboration Note
-
-This submission is maintained from a collaborator lane: frontend demo portal, README, public docs, and printable proof materials. The Rust engine and live trading backend remain owned by the core repository maintainers; frontend copy mirrors backend receipts without editing backend code.
-
-> **13forge** is a deterministic execution airlock. It prevents LLMs from writing live option orders by forcing them to negotiate through a bicameral S13 state vector, which is then verified against market structure and margin-physics limits before Alpaca is ever touched.
-
-## 🏛️ The Zero Generative Law
-
-We do not allow predictive models to hallucinate strikes, Greeks, or JSON payloads directly. Our architecture enforces a strict separation of concerns:
-
-1. **Emission:** The dual-oracle (Bull/Bear) emits constrained `S13` thesis tokens.
-2. **Gating:** Tokens hit a 7-gate deterministic, refuse-by-default gate lattice.
-3. **Assembly:** The strategy layer builds the trade exclusively from real `ChainQuote` market data.
-4. **Execution:** Only mathematically verified, strictly bounded trades reach the Alpaca V2 API.
+### The moment that matters
 
 ```mermaid
-graph TD
-    A[Dual-Oracle <br> Bull/Bear] -->|Emits| B(S13 Thesis Tokens)
-    B --> C{Deterministic <br> Gate Lattice}
-    C -->|Refuse| D[Execution Aborted <br> 0 Syscalls]
-    C -->|Pass| E[Strategy Assembly]
-    E -->|Reads| F[(ChainQuote <br> Market Data)]
-    E --> G[Alpaca API]
-
-    style A fill:#111,stroke:#333,stroke-width:2px,color:#fff
-    style B fill:#222,stroke:#444,color:#fff
-    style C fill:#d63031,stroke:#ff7675,stroke-width:2px,color:#fff
-    style D fill:#636e72,color:#fff
-    style E fill:#00b894,stroke:#55efc4,stroke-width:2px,color:#fff
-    style F fill:#e17055,color:#fff
-    style G fill:#fbc531,color:#111,stroke-width:2px
+flowchart LR
+    A[AI suggests a trade] --> B[13forge checks it]
+    B -->|Unsafe: $2,525 > $2,000| C[REFUSED]
+    C --> D[Alpaca is never contacted]
+    B -->|All gates pass| E[Structured order may continue]
+    E --> F[Alpaca]
+    style B fill:#20292d,color:#fff,stroke:#43b96b,stroke-width:3px
+    style C fill:#8f2d35,color:#fff,stroke:#ff8b8b,stroke-width:2px
+    style D fill:#f5f7f5,color:#20292d
+    style F fill:#43b96b,color:#102018
 ```
 
-## ⚙️ Setup & Verification Guide
+This is the product in one sentence: **creative reasoning is allowed upstream; deterministic permission is required downstream.**
 
-Ensure you have Rust installed and your Alpaca paper credentials set in your environment. **We strictly avoid writing secrets to disk.**
+## Why it exists
+
+Generative models are useful at finding ideas. They are not a safe place to put final authority over strikes, risk, or broker payloads. 13forge gives the model a narrow job and gives the execution path hard boundaries:
+
+- the model emits a constrained thesis, not an order;
+- strategy code uses real `ChainQuote` data to assemble the spread;
+- seven refuse-by-default checks run before dispatch;
+- only a mathematically bounded result can reach the Alpaca CLI.
+
+The experience is designed to make a technical safety property feel obvious to a first-time judge: **the system proves what it refused, why it refused it, and what did not happen next.**
+
+## Replay the proof
+
+The deployed portal is a guided, static replay backed by repository evidence. It does not contain credentials, live balances, or a live order button.
+
+| Step | What the judge sees | Why it matters |
+| --- | --- | --- |
+| 1 | An oversized iron condor proposal | A concrete failure, not an abstract architecture diagram |
+| 2 | Seven checks run in sequence | Safety is a path, not a single marketing claim |
+| 3 | `$2,525` maximum loss vs `$2,000` limit | The refusal is easy to verify mentally |
+| 4 | `DispatchRefusal::MaxLossVeto` | The human explanation maps to code |
+| 5 | "Broker process not started" | The system proves the prevented side effect |
+
+**[Run the replay](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[Download/print the packet](https://13forge-proof-portal.vercel.app/demo-portal/print.html)**
+
+## The seven-gate path
+
+```mermaid
+flowchart TD
+    A[Constrained S13 thesis] --> G1[01 Margin circuit breaker]
+    G1 --> G2[02 Position-state check]
+    G2 --> G3[03 AI permission check]
+    G3 --> G4[04 Market stability check]
+    G4 --> G5[05 Trade structure check]
+    G5 --> G6[06 Maximum-loss check]
+    G6 --> G7[07 Alpaca submission]
+    G1 -. refuse .-> R[Receipt + no broker process]
+    G2 -. refuse .-> R
+    G3 -. refuse .-> R
+    G4 -. refuse .-> R
+    G5 -. refuse .-> R
+    G6 -. refuse .-> R
+    style G1 fill:#20292d,color:#fff
+    style G2 fill:#20292d,color:#fff
+    style G3 fill:#20292d,color:#fff
+    style G4 fill:#20292d,color:#fff
+    style G5 fill:#20292d,color:#fff
+    style G6 fill:#20292d,color:#fff
+    style G7 fill:#43b96b,color:#102018
+    style R fill:#8f2d35,color:#fff
+```
+
+The current path checks `GovernorVent` first, before the other refusal paths. The public receipt records **159/159 tests: 110 forge-gate + 36 forge-daemon + 13 example tests** for the `2026-09-02-night-governor` session.
+
+## Claim-proof ledger
+
+We use a strict vocabulary so the README does not make a stronger claim than the code or receipt supports.
+
+| Claim | Status | Evidence |
+| --- | --- | --- |
+| Governor VENT can refuse dispatch before the other checks | LIVE | Governor/dispatch path and refusal test |
+| Position-state, oracle, market, geometry, and max-loss checks control dispatch | LIVE | Dispatch code and refusal tests |
+| A `$2,525` maximum loss exceeds the `$2,000` ceiling | TESTED | Recorded oversized-condor refusal |
+| Credit prices serialize as negative Alpaca mleg limit prices | VERIFIED | `mleg_body` test |
+| Strategy uses quoted strikes and enforces wing caps | TESTED | Strategy tests |
+| Merkle seal, Fredholm residue, and API pacer | SUPPORT | Built components, not presented as live gates |
+
+Metrics such as win rate, profit factor, latency, fills, and account balances are intentionally omitted until a fresh receipt supports them.
+
+## Architecture in plain English
+
+```mermaid
+flowchart LR
+    A[Dual oracle: Bull / Bear] --> B[Constrained S13 thesis]
+    B --> C{Rust gate lattice}
+    C -->|Refuse| D[Receipt: reason + zero broker call]
+    C -->|Pass| E[Build from ChainQuote data]
+    E --> F[Alpaca CLI via stdin]
+    style C fill:#20292d,color:#fff,stroke:#43b96b,stroke-width:3px
+    style D fill:#8f2d35,color:#fff
+    style E fill:#43b96b,color:#102018
+```
+
+The model is useful because it proposes a thesis. The Rust path is trusted because it owns permission, risk, structure, and serialization boundaries.
+
+## Judge lens
+
+**Best-practice inference, not an event-specific official rubric:** hackathon judges tend to reward a focused problem, a working public demo, meaningful technology use, originality, and a clear explanation. This README makes each visible in the same order a judge experiences the submission:
+
+| Judge question | Answer in this project |
+| --- | --- |
+| What problem is solved? | AI-generated trading ideas need a deterministic safety boundary |
+| Can I understand it quickly? | One replay, one refusal, one visible dollar comparison |
+| Is the technology meaningful? | Rust gates own the final permission path; AI does not write orders |
+| Is there proof? | Code references, refusal receipts, and a reproducible test session |
+| What is memorable? | The system proves a dangerous order never reached the broker |
+
+The psychology is simple: reduce cognitive load, show a concrete consequence, and make trust visible through a receipt. A judge should feel oriented before they feel impressed.
+
+## Run locally
+
+The proof portal is plain static HTML and can be opened directly or served from the repository root. The Rust workspace requires a local Rust toolchain.
 
 ```bash
-# 1. Set your Alpaca V2 paper credentials (session-only)
+# Set Alpaca paper credentials only in the current shell.
 export APCA_API_KEY_ID="your_key_id"
 export APCA_API_SECRET_KEY="your_secret_key"
 
-# 2. Run the full gate-lattice test suite (159 tests)
+# Run the current workspace verification.
 cargo test -p forge-gate -p forge-daemon
 
-# 3. Dry-run today's strategy selection against the live SPY chain (no orders placed)
+# Dry-run strategy selection; no order is placed.
 cargo run --example sim_today -p forge-daemon
 
-# 4. Live account smoke test (GET /v2/account only)
+# Read-only account smoke test.
 cargo run --example live_smoke -p forge-daemon
 ```
 
-## ✅ Hackathon Submission Checklist
+## Links and ownership
 
-- [x] **Account Verification**: Confirm fresh Alpaca paper account balance is exactly `$100,000`. (Status: `ACTIVE`, Buying Power: `$400,000`)
-- [x] **Judging ID**: Retrieve new Alpaca Account ID for official P&L judging. (Account ID: `PA3FMNQT9WDW`)
-- [x] **Technical Repository**: Publish public GitHub repository and demo URL.
-- [x] **Write-Up**: Finalize 1-page write-up detailing `D=T+F+R` logic, 1.5 µs risk gates, and Alpaca CLI infrastructure.
-- [x] **Presentation Assets**: Compile video presentation, slide deck, and cover image.
-- [x] **Build-in-Public**: Publish Build-in-Public posts on X/LinkedIn tagging `@lablabai` and `@AlpacaHQ`.
+- **Live proof portal:** https://13forge-proof-portal.vercel.app/demo-portal/
+- **Print packet:** https://13forge-proof-portal.vercel.app/demo-portal/print.html
+- **Proof metadata:** https://13forge-proof-portal.vercel.app/demo-portal/proof-data.json
+- **Source repository:** https://github.com/deveraux-dev/AlpacaCOMP
+
+This submission is maintained from a collaborator lane: frontend demo portal, README/docs, deployment preview, and presentation assets. The Rust engine, credentials, live trading behavior, and trading receipts remain owned by the core repository maintainers. Frontend copy mirrors backend receipts without editing backend code.
+
+*Demo video URL can be added after the final recording.*
 
 ---
-<div align="center">
-  <b>13forge</b>
-</div>
+
+<div align="center"><b>13forge</b> | Proof-first autonomous options execution</div>

@@ -44,7 +44,7 @@
       <a class="header-link" href="https://github.com/deveraux-dev/AlpacaCOMP">GitHub</a>
       <span class="engine-pill">
         <span class="pulse-dot"></span>
-        ENGINE SYNCING...
+        RECORDED PROOF
       </span>
       <button id="theme-toggle" aria-label="Toggle theme" style="background:transparent;border:0;cursor:pointer;color:var(--ink);display:grid;place-items:center;padding:4px;">
         <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
@@ -56,11 +56,22 @@
   <main id="top">
     <section class="intro reveal" aria-labelledby="intro-title">
       <div class="eyebrow"><span class="status-dot"></span> Alpaca paper trading · recorded safety proof</div>
-      <h1 id="intro-title">Would this AI trade reach Alpaca?</h1>
-      <p>AI proposes the trade. Deterministic Rust checks decide whether execution is allowed. Replay the real oversized-condor case that the risk gate refused.</p>
+      <h1 id="intro-title">An AI idea meets a hard safety boundary.</h1>
+      <p>See exactly what happens when a proposed options trade is too risky: 13forge checks it, explains the refusal, and proves the broker was never reached.</p>
+
+      <div class="intro-actions" aria-label="Primary portal actions">
+        <a class="primary-action intro-action" href="#proof-replay">Run the safety replay <span aria-hidden="true">-&gt;</span></a>
+        <a class="secondary-action" href="#evidence">See the dollar proof</a>
+      </div>
+
+      <div class="proof-rail" aria-label="Proof at a glance">
+        <div><strong>01</strong><span>Recorded case</span></div>
+        <div><strong>07</strong><span>Deterministic gates</span></div>
+        <div><strong>0</strong><span>Broker calls after refusal</span></div>
+      </div>
       
       <div class="ai-safety-story">
-        <h2 class="section-label">Why an AI mistake cannot directly become an order</h2>
+          <h2 class="section-label">The safety boundary in one glance</h2>
         <div class="story-grid">
           <div class="story-step"><span>AI</span><strong>Suggests the idea</strong></div>
           <div class="story-arrow" aria-hidden="true">→</div>
