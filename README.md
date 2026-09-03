@@ -7,8 +7,10 @@
   <h1>AI can propose the trade. Rust decides if it is safe.</h1>
   <p><i>A proof-first execution airlock for autonomous options trading.</i></p>
 
-  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-  [![Rust](https://img.shields.io/badge/Rust-no__std-orange.svg)]()
+  [![Live Portal](https://img.shields.io/badge/Portal-Live-000020?style=for-the-badge&logo=vercel)](https://13forge-proof-portal.vercel.app/demo-portal/)
+  [![Execution Engine](https://img.shields.io/badge/Engine-Rust_no__std-009688?style=for-the-badge&logo=rust)](https://github.com/deveraux-dev/AlpacaCOMP)
+  [![AI Layer](https://img.shields.io/badge/AI-Constrained_Thesis-8E75B2?style=for-the-badge&logo=openai)](https://github.com/deveraux-dev/AlpacaCOMP)
+  [![Broker API](https://img.shields.io/badge/Broker-Alpaca_V2-34D399?style=for-the-badge)](https://alpaca.markets/)
 </div>
 
 ## Start here
@@ -88,18 +90,42 @@ flowchart TD
 
 The current path checks `GovernorVent` first, before the other refusal paths. The public receipt records **159/159 tests: 110 forge-gate + 36 forge-daemon + 13 example tests** for the `2026-09-02-night-governor` session.
 
-## Claim-proof ledger
+## 🧾 Claim-proof ledger
 
 We use a strict vocabulary so the README does not make a stronger claim than the code or receipt supports.
 
-| Claim | Status | Evidence |
-| --- | --- | --- |
-| Governor VENT can refuse dispatch before the other checks | LIVE | Governor/dispatch path and refusal test |
-| Position-state, oracle, market, geometry, and max-loss checks control dispatch | LIVE | Dispatch code and refusal tests |
-| A `$2,525` maximum loss exceeds the `$2,000` ceiling | TESTED | Recorded oversized-condor refusal |
-| Credit prices serialize as negative Alpaca mleg limit prices | VERIFIED | `mleg_body` test |
-| Strategy uses quoted strikes and enforces wing caps | TESTED | Strategy tests |
-| Merkle seal, Fredholm residue, and API pacer | SUPPORT | Built components, not presented as live gates |
+<table>
+  <tr>
+    <td width="50%">
+      <h3>🔴 Live: Governor VENT Refusal</h3>
+      <p><strong>Governor VENT blocks dispatch before the other checks.</strong> Backed by the <code>governor_vent_refuses_before_any_other_gate</code> test and the live Governor/dispatch path.</p>
+    </td>
+    <td width="50%">
+      <h3>🛡️ Live: State & Risk Control</h3>
+      <p><strong>Position-state, oracle, market, geometry, and max-loss checks control dispatch.</strong> Backed by dispatch code and refusal tests.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>🚫 Tested: $2,525 Max Loss Veto</h3>
+      <p><strong>A $2,525 maximum loss exceeds the $2,000 ceiling.</strong> Proven by the recorded oversized-condor refusal case.</p>
+    </td>
+    <td width="50%">
+      <h3>✅ Verified: Negative Credit Pricing</h3>
+      <p><strong>Credit prices serialize as negative Alpaca mleg limit prices.</strong> Backed by the <code>mleg_body</code> Alpaca convention test.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>📏 Tested: Quoted Strikes & Wing Caps</h3>
+      <p><strong>Strategy uses quoted strikes and pulls wings inside the cap.</strong> Backed by robust strategy tests.</p>
+    </td>
+    <td width="50%">
+      <h3>⚙️ Support: Core Components</h3>
+      <p><strong>Merkle seal, Fredholm residue, and API pacer.</strong> Built components, not presented as live gates.</p>
+    </td>
+  </tr>
+</table>
 
 Metrics such as win rate, profit factor, latency, fills, and account balances are intentionally omitted until a fresh receipt supports them.
 
@@ -119,17 +145,38 @@ flowchart LR
 
 The model is useful because it proposes a thesis. The Rust path is trusted because it owns permission, risk, structure, and serialization boundaries.
 
-## Judge lens
+## 🔍 Judge lens
 
 **Best-practice inference, not an event-specific official rubric:** hackathon judges tend to reward a focused problem, a working public demo, meaningful technology use, originality, and a clear explanation. This README makes each visible in the same order a judge experiences the submission:
 
-| Judge question | Answer in this project |
-| --- | --- |
-| What problem is solved? | AI-generated trading ideas need a deterministic safety boundary |
-| Can I understand it quickly? | One replay, one refusal, one visible dollar comparison |
-| Is the technology meaningful? | Rust gates own the final permission path; AI does not write orders |
-| Is there proof? | Code references, refusal receipts, and a reproducible test session |
-| What is memorable? | The system proves a dangerous order never reached the broker |
+<table>
+  <tr>
+    <td width="50%">
+      <h3>🎯 What problem is solved?</h3>
+      <p>AI-generated trading ideas need a deterministic safety boundary.</p>
+    </td>
+    <td width="50%">
+      <h3>⏱️ Can I understand it quickly?</h3>
+      <p>One replay, one refusal, one visible dollar comparison.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>💻 Is the technology meaningful?</h3>
+      <p>Rust gates own the final permission path; AI does not write orders.</p>
+    </td>
+    <td width="50%">
+      <h3>🧾 Is there proof?</h3>
+      <p>Code references, refusal receipts, and a reproducible test session.</p>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <h3>🧠 What is memorable?</h3>
+      <p>The system proves a dangerous order never reached the broker.</p>
+    </td>
+  </tr>
+</table>
 
 The psychology is simple: reduce cognitive load, show a concrete consequence, and make trust visible through a receipt. A judge should feel oriented before they feel impressed.
 
