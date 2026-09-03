@@ -13,6 +13,7 @@ use forge_gate::market_purity::NormalizedIpr;
 use forge_gate::oracle_arbiter::{AuditChain, Disposition, OracleArbiter};
 use forge_gate::strategy::{build_iron_condor, ChainQuote, Side};
 use serde_json::Value;
+use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -225,7 +226,26 @@ fn main() {
     );
     println!("governor risk_gate_faults this run: {}", health.risk_gate_faults.load(std::sync::atomic::Ordering::Relaxed));
 
-    match result {
+    // Capture timestamp & verdict before match for ledger row.
+    let ts_secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+    let verdict_str = format!("{:?}", verdict);
+    let bull_token = args_token(&bull);
+    let bear_token = args_token(&bear);
+
+    // Determine outcome for ledger before consuming result.
+    let outcome_str = match &result {
+        Ok(_) => "ACCEPTED".to_string(),
+        Err(r) => match r {
+            DispatchRefusal::IllegalTransition => "IllegalTransition".to_string(),
+            DispatchRefusal::VerdictVeto => "VerdictVeto".to_string(),
+            DispatchRefusal::ChaoticBook => "ChaoticBook".to_string(),
+            DispatchRefusal::MaxLossVeto => "MaxLossVeto".to_string(),
+            DispatchRefusal::MalformedLegs => "MalformedLegs".to_string(),
+            DispatchRefusal::Cli(_) => "CliRefusal".to_string(),
+        },
+    };
+
+    match &result {
         Ok(resp) => println!("ORDER ACCEPTED:\n{resp}"),
         Err(DispatchRefusal::Cli(CliRefusal::ExeNotFound(_))) if !send => {
             println!("ALL SIX GATES PASSED (dry run stopped at CLI spawn by design)");
@@ -234,5 +254,22 @@ fn main() {
             println!("REFUSED: {r:?}");
             std::process::exit(1);
         }
+    }
+
+    // Append to proof-ledger TSV: day, secs, crate, claim, ladder, oracle_1, oracle_2, receipt
+    // day = days-since-epoch (secs/86400), matching every existing row's convention.
+    let day = ts_secs / 86_400;
+    let claim = format!("{} {} iron_condor dispatch", ROOT, YYMMDD);
+    let row = format!("{day}\t{ts_secs}\tforge-daemon\t{claim}\t{outcome_str}\t{bull_token}\t{bear_token}\t{verdict_str}\n");
+
+    if let Err(e) = std::fs::OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(".forge/proof-ledger.tsv")
+        .and_then(|mut f| f.write_all(row.as_bytes()))
+    {
+        eprintln!("WARNING: ledger write failed: {e}");
+    } else {
+        eprintln!("ledger row written: {row:?}");
     }
 }

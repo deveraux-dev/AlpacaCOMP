@@ -15,10 +15,7 @@ use std::time::Duration;
 use forge_daemon::alpaca_cli::AlpacaCli;
 use forge_daemon::config;
 use forge_daemon::governor::{spawn_governor, AlpacaDaemonHealth};
-
-fn env_u64(name: &str, default: u64) -> u64 {
-    std::env::var(name).ok().and_then(|v| v.parse().ok()).unwrap_or(default)
-}
+use forge_gate::api_pacer::ApiPacer;
 
 fn main() {
     let creds = match config::load_from_env() {
@@ -38,11 +35,13 @@ fn main() {
     let health = Arc::new(AlpacaDaemonHealth::default());
     spawn_governor(health.clone());
 
-    let poll_secs = env_u64("GOVERNOR_POLL_SECS", 30);
     let max_ticks = std::env::var("GOVERNOR_LOOP_TICKS").ok().and_then(|v| v.parse::<u64>().ok());
+    let mut pacer = ApiPacer::default_market_pacer();
+    let mut prev_account_json: Option<String> = None;
 
+    let (min_ms, max_ms) = pacer.bounds();
     eprintln!(
-        "[bifurcation_alpaca_loop] live poll every {poll_secs}s{}, market-hours gated",
+        "[bifurcation_alpaca_loop] ApiPacer AIMD poll cadence {min_ms}-{max_ms}ms{}, market-hours gated",
         max_ticks.map(|t| format!(", {t} ticks then exit")).unwrap_or_default()
     );
 
@@ -75,8 +74,8 @@ fn main() {
                         Ok(v) => v,
                         Err(e) => {
                             eprintln!("[bifurcation_alpaca_loop] account JSON parse failed: {e}");
-                            std::thread::sleep(Duration::from_secs(poll_secs));
                             tick += 1;
+                            std::thread::sleep(Duration::from_millis(pacer.interval_ms()));
                             continue;
                         }
                     };
@@ -84,8 +83,21 @@ fn main() {
                     let maint: f64 = v["maintenance_margin"].as_str().and_then(|s| s.parse().ok()).unwrap_or(0.0);
                     health.equity_bp.store((equity * 10000.0) as u64, Ordering::Relaxed);
                     health.maintenance_bp.store((maint * 10000.0) as u64, Ordering::Relaxed);
+
+                    let hash_changed = if let Some(prev) = &prev_account_json {
+                        json != *prev
+                    } else {
+                        false
+                    };
+                    pacer.observe(hash_changed);
+                    prev_account_json = Some(json);
+
+                    let pressure_pct = ((max_ms - pacer.interval_ms()) * 100 / (max_ms - min_ms)) as u32;
+                    health.pacer_pressure_pct.store(pressure_pct, Ordering::Relaxed);
+
                     eprintln!(
-                        "[bifurcation_alpaca_loop] tick {tick}: equity=${equity:.2} maintenance_margin=${maint:.2}"
+                        "[bifurcation_alpaca_loop] tick {tick}: equity=${equity:.2} maintenance_margin=${maint:.2} pacer_interval={} pressure_pct={}%",
+                        pacer.interval_ms(), pressure_pct
                     );
                 }
                 Err(e) => eprintln!("[bifurcation_alpaca_loop] account_get refused: {e:?}"),
@@ -93,6 +105,6 @@ fn main() {
         }
 
         tick += 1;
-        std::thread::sleep(Duration::from_secs(poll_secs));
+        std::thread::sleep(Duration::from_millis(pacer.interval_ms()));
     }
 }
