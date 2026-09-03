@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+
 pub mod alpaca_cli;
 pub mod config;
 pub mod dispatch;
