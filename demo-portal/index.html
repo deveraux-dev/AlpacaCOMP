@@ -6,11 +6,6 @@
   <meta name="description" content="Replay the deterministic safety checks that stopped an unsafe options trade before it reached Alpaca.">
   <link rel="icon" href="data:,">
   <title>13forge | Proof Portal</title>
-  
-  <!-- Premium Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -18,7 +13,7 @@
 
   <header class="site-header">
     <a class="brand" href="#top" aria-label="13forge proof portal home">
-      <span class="brand-mark" aria-hidden="true"><i data-lucide="shield-check" stroke-width="2.5" width="18" height="18"></i></span>
+      <span class="brand-mark" aria-hidden="true">13</span>
       <span>13forge</span>
     </a>
     <nav aria-label="Portal navigation">
@@ -26,19 +21,17 @@
       <a href="#evidence">Evidence</a>
       <a href="#architecture">System</a>
     </nav>
-    <div style="display: flex; gap: 16px; align-items: center; justify-self: end;">
+    <div style="display: flex; gap: 16px; align-items: center;">
+      <span style="font-size: 0.85rem; font-weight: 500; color: #00875a; display: flex; align-items: center; gap: 6px;">
+        <span style="display: inline-block; width: 6px; height: 6px; background-color: #00d27a; border-radius: 50%;"></span>
+        Engine: 159/159 Green
+      </span>
       <a class="header-link" href="../docs/CLAIM_PROOF_MAP.md">Proof map</a>
-      <div id="backend-status" style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); padding: 6px 12px; border-radius: 100px; background: var(--surface-quiet); transition: all 0.3s ease;">
-        <span class="status-dot" style="width: 6px; height: 6px;"></span> <span id="backend-status-text">Engine Syncing...</span>
-      </div>
-      <button id="theme-toggle" aria-label="Toggle theme">
-        <i data-lucide="moon" width="16" height="16" id="theme-icon"></i>
-      </button>
     </div>
   </header>
 
   <main id="top">
-    <section class="intro reveal" aria-labelledby="intro-title">
+    <section class="intro" aria-labelledby="intro-title">
       <div class="eyebrow"><span class="status-dot"></span> Alpaca paper trading · recorded safety proof</div>
       <h1 id="intro-title">Would this AI trade reach Alpaca?</h1>
       <p>AI proposes the trade. Deterministic Rust checks decide whether execution is allowed. Replay the real oversized-condor case that the risk gate refused.</p>
@@ -48,38 +41,8 @@
         <span>Alpaca receives passed orders only</span>
       </div>
     </section>
-    
-    <!-- Graph Feature Added Back In! -->
-    <section class="graph-section reveal" aria-labelledby="graph-title">
-      <div class="graph-box bento-glass">
-        <div class="graph-header">
-          <div class="eyebrow"><span class="status-dot"></span> Margin Physics Governor</div>
-          <h2 id="graph-title">Autonomous Strain Circuit Breaker</h2>
-          <p>A background loop tracking the physical derivatives of equity decay. If acceleration into a margin cliff breaches thresholds, the order gate locks instantly.</p>
-        </div>
-        <div class="graph-container">
-          <svg viewBox="0 0 800 180" class="bento-graph" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#00d27a" />
-                <stop offset="70%" stop-color="#00d27a" />
-                <stop offset="100%" stop-color="#ff4757" />
-              </linearGradient>
-              <linearGradient id="fillGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#00d27a" stop-opacity="0.3" />
-                <stop offset="100%" stop-color="#00d27a" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            <path d="M0,45 L800,45 M0,90 L800,90 M0,135 L800,135" stroke="var(--line-strong)" stroke-opacity="0.3" stroke-dasharray="4,4" />
-            <path d="M0,90 C100,70 200,100 300,50 C400,0 500,80 600,40 C700,0 750,150 800,170 L800,180 L0,180 Z" fill="url(#fillGrad)" class="fade-fill" />
-            <path d="M0,90 C100,70 200,100 300,50 C400,0 500,80 600,40 C700,0 750,150 800,170" fill="none" stroke="url(#lineGrad)" stroke-width="4" stroke-linecap="round" class="draw-line" />
-            <circle cx="800" cy="170" r="6" fill="#ff4757" class="blinking-dot" />
-          </svg>
-        </div>
-      </div>
-    </section>
 
-    <section class="replay-shell bento-glass reveal" id="proof-replay" aria-labelledby="replay-title">
+    <section class="replay-shell" id="proof-replay" aria-labelledby="replay-title">
       <div class="replay-heading">
         <div>
           <p class="section-label">Decision replay</p>
@@ -120,12 +83,12 @@
           <ol class="gate-list">
             <li class="gate" data-gate="governor">
               <span class="gate-index">01</span>
-              <span class="gate-copy"><strong>Margin strain check</strong><small>Governor circuit breaker must not be venting.</small></span>
+              <span class="gate-copy"><strong>Margin strain check</strong><small>Governor circuit breaker checks for margin acceleration.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate" data-gate="state">
               <span class="gate-index">02</span>
-              <span class="gate-copy"><strong>Position-state check</strong><small>Illegal order-state transitions are refused.</small></span>
+              <span class="gate-copy"><strong>Position-state check</strong><small>Illegal order-state transitions are refused first.</small></span>
               <span class="gate-status">Waiting</span>
             </li>
             <li class="gate" data-gate="oracle">
@@ -163,14 +126,14 @@
       </div>
     </section>
 
-    <section class="evidence-section reveal" id="evidence" aria-labelledby="evidence-title">
+    <section class="evidence-section" id="evidence" aria-labelledby="evidence-title">
       <div class="section-heading">
         <p class="section-label">Why it was refused</p>
         <h2 id="evidence-title">The numbers cross the hard limit</h2>
         <p>No prediction or model opinion decides this result. A fixed, tested risk rule compares the calculated loss with the account ceiling.</p>
       </div>
 
-      <div class="equation bento-glass" aria-label="Maximum loss calculation">
+      <div class="equation" aria-label="Maximum loss calculation">
         <div><span>Wing risk</span><strong>29 × $100</strong><small>$2,900</small></div>
         <span class="operator" aria-hidden="true">−</span>
         <div><span>Credit received</span><strong>$3.75 × 100</strong><small>$375</small></div>
@@ -179,23 +142,23 @@
       </div>
 
       <div class="receipt-grid">
-        <article class="receipt-card refusal-receipt bento-glass">
-          <div class="receipt-topline"><span>Decision receipt</span><span class="tag refused">LIVE PATH</span></div>
+        <article class="receipt-card refusal-receipt">
+          <div class="receipt-topline"><span>Decision receipt</span><span>LIVE PATH</span></div>
           <p class="receipt-verdict">REFUSED</p>
           <p><strong>$2,525</strong> potential loss exceeds the <strong>$2,000</strong> ceiling.</p>
           <div class="receipt-footer"><code>DispatchRefusal::MaxLossVeto</code><span>Broker process not started</span></div>
         </article>
 
-        <article class="receipt-card bento-glass">
-          <div class="receipt-topline"><span>Price-format receipt</span><span class="tag tested">VERIFIED</span></div>
+        <article class="receipt-card">
+          <div class="receipt-topline"><span>Price-format receipt</span><span>VERIFIED</span></div>
           <p class="credit-value">-3.28</p>
           <p>A $3.28 net credit is serialized as a negative limit price. Debit prices are positive.</p>
-          <div class="receipt-footer"><code>credit_entry_limit_price_is_negative</code><span>Test-backed</span></div>
+          <div class="receipt-footer"><code>credit_entry_limit_price_is_negative...</code><span>Test-backed</span></div>
         </article>
       </div>
     </section>
 
-    <section class="architecture-section reveal" id="architecture" aria-labelledby="architecture-title">
+    <section class="architecture-section" id="architecture" aria-labelledby="architecture-title">
       <div class="section-heading compact-heading">
         <p class="section-label">System map</p>
         <h2 id="architecture-title">Creative AI, deterministic control</h2>
@@ -203,14 +166,14 @@
       </div>
 
       <div class="architecture-flow">
-        <article class="bento-glass"><span class="flow-number">1</span><h3>Strategist</h3><p>Produces a constrained trade thesis.</p></article>
+        <article><span class="flow-number">1</span><h3>Strategist</h3><p>Produces a constrained trade thesis.</p></article>
         <span class="flow-arrow" aria-hidden="true">→</span>
-        <article class="control-node bento-glass"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>Check margin strain, position state, permission, market stability, structure, and maximum loss.</p></article>
+        <article class="control-node"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>Check margin strain, position state, permission, market stability, structure, and maximum loss.</p></article>
         <span class="flow-arrow" aria-hidden="true">→</span>
-        <article class="bento-glass"><span class="flow-number">3</span><h3>Alpaca</h3><p>Receives a structured order only after every gate passes.</p></article>
+        <article><span class="flow-number">3</span><h3>Alpaca</h3><p>Receives a structured order only after every gate passes.</p></article>
       </div>
 
-      <div class="claim-board bento-glass">
+      <div class="claim-board">
         <div class="claim-board-heading">
           <div><p class="section-label">Claim discipline</p><h3>What this portal can prove</h3></div>
           <a href="../docs/CLAIM_PROOF_MAP.md">Read complete proof map →</a>

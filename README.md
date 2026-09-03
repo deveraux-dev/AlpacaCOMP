@@ -106,10 +106,10 @@ cargo run --example live_smoke -p forge-daemon
 
 - [x] **Account Verification**: Confirm fresh Alpaca paper account balance is exactly `$100,000`. (Status: `ACTIVE`, Buying Power: `$400,000`)
 - [x] **Judging ID**: Retrieve new Alpaca Account ID for official P&L judging. (Account ID: `PA3FMNQT9WDW`)
-- [ ] **Technical Repository**: Publish public GitHub repository and demo URL.
-- [ ] **Write-Up**: Finalize 1-page write-up detailing `D=T+F+R` logic, 1.5 µs risk gates, and Alpaca CLI infrastructure.
-- [ ] **Presentation Assets**: Compile video presentation, slide deck, and cover image.
-- [ ] **Build-in-Public**: Publish Build-in-Public posts on X/LinkedIn tagging `@lablabai` and `@AlpacaHQ`.
+- [x] **Technical Repository**: Publish public GitHub repository and demo URL.
+- [x] **Write-Up**: Finalize 1-page write-up detailing `D=T+F+R` logic, 1.5 µs risk gates, and Alpaca CLI infrastructure.
+- [x] **Presentation Assets**: Compile video presentation, slide deck, and cover image.
+- [x] **Build-in-Public**: Publish Build-in-Public posts on X/LinkedIn tagging `@lablabai` and `@AlpacaHQ`.
 
 ---
 <div align="center">
