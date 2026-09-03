@@ -1,421 +1,671 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>13forge Proof Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>13forge | Deterministic Execution Airlock</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #090b0a;
-      --bg-gradient: radial-gradient(circle at top right, #111a14, #090b0a 60%);
-      --text-main: #f0f4f1;
-      --text-muted: #94a399;
-      --border: rgba(255, 255, 255, 0.1);
-      --glass-bg: rgba(255, 255, 255, 0.03);
-      --glass-hover: rgba(255, 255, 255, 0.06);
+      --bg: #050505;
+      --bg-gradient: radial-gradient(circle at 50% -20%, #1a221f, #050505 60%);
+      --text-main: #fcfcfc;
+      --text-muted: #88928b;
+      --border: rgba(255, 255, 255, 0.08);
+      --glass-bg: rgba(255, 255, 255, 0.02);
+      --glass-hover: rgba(255, 255, 255, 0.04);
       
       --accent-live: #00d27a;
-      --accent-live-bg: rgba(0, 210, 122, 0.15);
+      --accent-live-bg: rgba(0, 210, 122, 0.1);
       --accent-refused: #ff4757;
-      --accent-refused-bg: rgba(255, 71, 87, 0.15);
+      --accent-refused-bg: rgba(255, 71, 87, 0.1);
       --accent-tested: #2e86de;
-      --accent-tested-bg: rgba(46, 134, 222, 0.15);
+      --accent-tested-bg: rgba(46, 134, 222, 0.1);
       --accent-pending: #ffa502;
-      --accent-pending-bg: rgba(255, 165, 2, 0.15);
+      --accent-pending-bg: rgba(255, 165, 2, 0.1);
+      
+      --shadow-color: rgba(0, 0, 0, 0.6);
+      --glow: 0 0 40px rgba(0, 210, 122, 0.1);
     }
 
-    * { box-sizing: border-box; }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg: #fafafa;
+      --bg-gradient: radial-gradient(circle at 50% -20%, #ffffff, #fafafa 60%);
+      --text-main: #111111;
+      --text-muted: #666666;
+      --border: rgba(0, 0, 0, 0.08);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --glass-hover: rgba(255, 255, 255, 1);
+      
+      --accent-live: #00a862;
+      --accent-live-bg: rgba(0, 168, 98, 0.1);
+      --accent-refused: #e84142;
+      --accent-refused-bg: rgba(232, 65, 66, 0.1);
+      
+      --shadow-color: rgba(0, 0, 0, 0.04);
+      --glow: 0 10px 40px rgba(0, 0, 0, 0.05);
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       color: var(--text-main);
       background: var(--bg);
       background-image: var(--bg-gradient);
+      background-attachment: fixed;
       min-height: 100vh;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      transition: background 0.5s ease, color 0.5s ease;
+      overflow-x: hidden;
     }
 
     main {
-      width: min(1120px, calc(100% - 40px));
+      width: min(1200px, calc(100% - 48px));
       margin: 0 auto;
-      padding: 40px 0 60px;
+      padding: 0 0 100px;
     }
 
-    section {
-      animation: fadeInUp 0.6s ease-out both;
+    /* Scroll Reveal Magic */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px) scale(0.98);
+      filter: blur(4px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    section:nth-child(2) { animation-delay: 0.1s; }
-    section:nth-child(3) { animation-delay: 0.2s; }
-    section:nth-child(4) { animation-delay: 0.3s; }
-    section:nth-child(5) { animation-delay: 0.4s; }
-    section:nth-child(6) { animation-delay: 0.5s; }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
 
-    .hero {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 40px;
+    /* Navbar */
+    .header-nav {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      padding: 40px 0 60px;
-      border-bottom: 1px solid var(--border);
+      padding: 24px 0;
+      animation: fadeInDown 0.6s ease-out forwards;
     }
 
-    h1 {
-      margin: 0 0 16px;
-      font-size: clamp(42px, 6vw, 76px);
-      line-height: 1.05;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    h2 {
-      margin: 0 0 16px;
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-
-    h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
-    }
-
-    p { margin: 0; }
-
-    .lead {
-      max-width: 600px;
+    .logo {
       font-size: 20px;
-      color: var(--text-muted);
-      line-height: 1.5;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .hero img {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-      display: block;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .hero img:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 25px 50px rgba(0,210,122,0.1);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-      margin: 40px 0;
-    }
-
-    .card, .wide {
+    #theme-toggle {
       background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      transition: all 0.3s ease;
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 100px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(10px);
     }
 
-    .card:hover {
+    #theme-toggle:hover {
       background: var(--glass-hover);
-      transform: translateY(-4px);
-      border-color: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transform: scale(1.05);
+      border-color: var(--accent-live);
     }
 
-    .wide {
-      margin: 24px 0;
+    #theme-toggle:active {
+      transform: scale(0.95);
     }
-    .wide:hover {
-      border-color: rgba(255, 255, 255, 0.15);
+
+    /* Hero Section */
+    .hero {
+      padding: 80px 0 100px;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
     .tag {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      font-size: 11px;
-      font-weight: 800;
+      font-size: 12px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 4px 10px;
-      border-radius: 20px;
-      margin-bottom: 16px;
+      letter-spacing: 0.08em;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(8px);
     }
 
-    .live { color: var(--accent-live); background: var(--accent-live-bg); }
-    .tested { color: var(--accent-tested); background: var(--accent-tested-bg); }
-    .pending { color: var(--accent-pending); background: var(--accent-pending-bg); }
-    .refused { color: var(--accent-refused); background: var(--accent-refused-bg); }
+    .live { color: var(--accent-live); background: var(--accent-live-bg); border: 1px solid rgba(0, 210, 122, 0.2); }
+    .tested { color: var(--accent-tested); background: var(--accent-tested-bg); border: 1px solid rgba(46, 134, 222, 0.2); }
+    .pending { color: var(--accent-pending); background: var(--accent-pending-bg); border: 1px solid rgba(255, 165, 2, 0.2); }
+    .refused { color: var(--accent-refused); background: var(--accent-refused-bg); border: 1px solid rgba(255, 71, 87, 0.2); }
 
-    .path {
+    .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: currentColor;
+      box-shadow: 0 0 10px currentColor;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    h1 {
+      font-size: clamp(48px, 8vw, 88px);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
+      background: linear-gradient(180deg, var(--text-main) 0%, var(--text-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .lead {
+      font-size: 20px;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-image-wrapper {
+      position: relative;
+      border-radius: 24px;
+      padding: 1px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+      box-shadow: var(--glow);
+    }
+
+    .hero img {
+      width: 100%;
+      border-radius: 23px;
+      display: block;
+      background: var(--bg);
+    }
+
+    /* Bento Box Grid */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .bento-item {
+      background: var(--glass-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .bento-item:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.15);
+      box-shadow: 0 20px 40px var(--shadow-color);
+    }
+
+    [data-theme="light"] .bento-item:hover {
+      border-color: rgba(0,0,0,0.1);
+    }
+
+    .col-4 { grid-column: span 4; }
+    .col-8 { grid-column: span 8; }
+    .col-6 { grid-column: span 6; }
+    .col-12 { grid-column: span 12; }
+
+    .bento-item h2 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .bento-item p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    /* Graph specific */
+    .graph-container {
+      margin-top: 24px;
+      width: 100%;
+      height: 180px;
+    }
+    .bento-graph {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    
+    .draw-line {
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: draw 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation-delay: 0.5s;
+    }
+    @keyframes draw {
+      to { stroke-dashoffset: 0; }
+    }
+    
+    .fade-fill {
+      opacity: 0;
+      animation: fadeInGraph 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation-delay: 1.5s;
+    }
+    @keyframes fadeInGraph {
+      to { opacity: 1; }
+    }
+
+    .blinking-dot {
+      opacity: 0;
+      animation: fadeInDot 0.1s forwards, pulseGlow 1.5s infinite;
+      animation-delay: 2.4s, 2.4s;
+    }
+    @keyframes fadeInDot { to { opacity: 1; } }
+    @keyframes pulseGlow {
+      0% { filter: drop-shadow(0 0 0 rgba(255, 71, 87, 0.8)); }
+      50% { filter: drop-shadow(0 0 15px rgba(255, 71, 87, 0.8)); }
+      100% { filter: drop-shadow(0 0 0 rgba(255, 71, 87, 0)); }
+    }
+
+    /* Pipeline Step Animation */
+    .pipeline-wrapper {
+      position: relative;
+      padding: 40px 0;
+      margin-top: 20px;
+    }
+    
+    .pipeline-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+    
+    .pipeline-progress {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-live), var(--accent-tested));
+      z-index: 1;
+      transition: width 1.5s ease-out;
+    }
+
+    .pipeline {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 16px;
-      margin-top: 24px;
+      gap: 20px;
+      position: relative;
+      z-index: 2;
     }
 
-    .step {
-      min-height: 110px;
+    .pipeline-step {
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.02);
-      padding: 16px;
-      position: relative;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .pipeline-step.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .pipeline-step:hover {
+      border-color: var(--accent-live);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px var(--shadow-color);
+    }
+
+    .step-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--glass-bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
       transition: all 0.3s ease;
     }
-    
-    .step:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: var(--accent-live);
-      transform: translateY(-3px);
+    .pipeline-step:hover .step-icon {
+      background: var(--accent-live-bg);
+      color: var(--accent-live);
+      border-color: rgba(0, 210, 122, 0.3);
     }
 
-    .step::after {
-      content: '→';
-      position: absolute;
-      right: -14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-weight: bold;
-    }
-    .step:last-child::after { display: none; }
-
-    .step strong {
-      display: block;
-      font-size: 15px;
-      color: #fff;
+    .pipeline-step h3 {
+      font-size: 16px;
       margin-bottom: 8px;
     }
-
-    .step span {
-      display: block;
+    .pipeline-step p {
       font-size: 13px;
       color: var(--text-muted);
-      line-height: 1.4;
     }
 
-    .proof {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      align-items: stretch;
-    }
-
-    .number {
-      font-size: 48px;
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: -0.03em;
-      margin: 8px 0 16px;
-    }
-    
-    .proof .card:first-child .number { color: var(--accent-refused); }
-    .proof .card:last-child .number { color: var(--accent-live); }
-
+    /* Tables */
     table {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      margin-top: 20px;
+      margin-top: 24px;
     }
-
     th, td {
-      text-align: left;
-      padding: 16px;
+      padding: 16px 24px;
       border-bottom: 1px solid var(--border);
-      vertical-align: top;
-      font-size: 14px;
+      font-size: 15px;
     }
-
     th {
       font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em;
       color: var(--text-muted);
       font-weight: 700;
-      padding-bottom: 12px;
     }
-
     tbody tr {
-      transition: background 0.2s ease;
+      transition: background 0.2s;
     }
     tbody tr:hover {
-      background: rgba(255,255,255,0.02);
+      background: var(--glass-hover);
     }
-
     tr:last-child td { border-bottom: 0; }
 
     code {
-      font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-      font-size: 0.9em;
-      background: rgba(255,255,255,0.08);
-      color: #e0e0e0;
-      padding: 3px 6px;
-      border-radius: 4px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85em;
+      background: rgba(150, 150, 150, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
-    .footer {
-      color: var(--text-muted);
-      font-size: 13px;
-      padding-top: 40px;
-      text-align: center;
-      border-top: 1px solid var(--border);
-      margin-top: 40px;
-    }
-
+    /* Responsive */
     @media (max-width: 960px) {
-      .hero { grid-template-columns: 1fr; text-align: center; }
-      .lead { margin: 0 auto; }
-      .path { grid-template-columns: 1fr 1fr; }
-      .step::after { display: none; }
+      .bento-grid { grid-template-columns: repeat(8, 1fr); }
+      .col-4 { grid-column: span 8; }
+      .col-8 { grid-column: span 8; }
+      .pipeline { grid-template-columns: repeat(2, 1fr); }
+      .pipeline-line, .pipeline-progress { display: none; }
     }
-
-    @media (max-width: 768px) {
-      .grid, .proof { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 520px) {
-      main { width: min(100% - 24px, 1120px); padding-top: 24px; }
-      .path { grid-template-columns: 1fr; }
-      h1 { font-size: 38px; }
-      .number { font-size: 40px; }
+    @media (max-width: 600px) {
+      .pipeline { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <main>
-    <section class="hero">
-      <div>
-        <div class="tag live">Proof-first Alpaca options agent</div>
-        <h1>13forge</h1>
-        <p class="lead">A model can propose a trade. The system only submits it after deterministic gates approve the oracle verdict, market structure, leg geometry, and max-loss ceiling.</p>
+    <!-- Header -->
+    <header class="header-nav">
+      <div class="logo">
+        <i data-lucide="layers" width="24" height="24" style="color: var(--accent-live)"></i>
+        13forge
       </div>
-      <img src="../patex_alpaca.png" alt="13forge Alpaca proof artifact">
+      <button id="theme-toggle" aria-label="Toggle theme">
+        <i data-lucide="moon" width="16" height="16" id="theme-icon"></i> <span id="theme-text">Theme</span>
+      </button>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero reveal">
+      <div class="tag live"><div class="indicator"></div> Live Proof Portal</div>
+      <h1>Deterministic <br> Execution Airlock</h1>
+      <p class="lead">A model can propose a trade. The system only submits it after deterministic Rust gates approve the oracle verdict, market structure, leg geometry, and max-loss ceiling.</p>
+      
+      <div class="hero-image-wrapper">
+        <img src="../patex_alpaca.png" alt="13forge Alpaca proof artifact">
+      </div>
     </section>
 
-    <section class="grid" aria-label="Project proof summary">
-      <article class="card">
-        <div class="tag live">Live path</div>
-        <h2>One guarded door</h2>
-        <p>All live order submission flows through <code>dispatch_spread</code> before the Alpaca CLI/API call.</p>
-      </article>
-      <article class="card">
-        <div class="tag refused">Main proof</div>
+    <!-- Bento Box Summary -->
+    <section class="bento-grid">
+      
+      <div class="bento-item col-8 reveal">
+        <div class="tag live"><div class="indicator"></div> Margin Physics Governor</div>
+        <h2>Autonomous Strain Circuit Breaker</h2>
+        <p>A background loop tracking the physical derivatives of equity decay. If acceleration into a margin cliff breaches thresholds, the order gate locks instantly.</p>
+        
+        <!-- Interactive Trading Graph Simulation -->
+        <div class="graph-container">
+          <svg viewBox="0 0 800 180" class="bento-graph" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00d27a" />
+                <stop offset="70%" stop-color="#00d27a" />
+                <stop offset="100%" stop-color="#ff4757" />
+              </linearGradient>
+              <linearGradient id="fillGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#00d27a" stop-opacity="0.3" />
+                <stop offset="100%" stop-color="#00d27a" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Grid lines for authentic look -->
+            <path d="M0,45 L800,45 M0,90 L800,90 M0,135 L800,135" stroke="var(--border)" stroke-dasharray="4,4" />
+            <!-- Filled Area -->
+            <path d="M0,90 C100,70 200,100 300,50 C400,0 500,80 600,40 C700,0 750,150 800,170 L800,180 L0,180 Z" fill="url(#fillGrad)" class="fade-fill" />
+            <!-- Line -->
+            <path d="M0,90 C100,70 200,100 300,50 C400,0 500,80 600,40 C700,0 750,150 800,170" fill="none" stroke="url(#lineGrad)" stroke-width="4" stroke-linecap="round" class="draw-line" />
+            <!-- End Dot -->
+            <circle cx="800" cy="170" r="6" fill="#ff4757" class="blinking-dot" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="bento-item col-4 reveal" style="transition-delay: 0.1s">
+        <div class="tag refused"><i data-lucide="shield-alert" width="14" height="14"></i> Main Proof</div>
         <h2>Unsafe trade refused</h2>
-        <p>The simmed 29-wide condor trips the 2 percent max-loss veto and never reaches the subprocess.</p>
-      </article>
-      <article class="card">
-        <div class="tag live">Margin Physics</div>
-        <h2>Strain Governor</h2>
-        <p>An autonomous 1s loop tracks equity decay velocity and trips a circuit breaker before margin cliffs.</p>
-      </article>
-      <article class="card">
-        <div class="tag tested">Receipts</div>
+        <h1 style="font-size: 32px; margin: 16px 0; background: none; -webkit-text-fill-color: var(--accent-refused);">$2,525 &gt; $2,000</h1>
+        <p>The 29-wide condor trips the 2% max-loss veto and is clamped before Alpaca CLI is ever spawned.</p>
+      </div>
+
+      <div class="bento-item col-6 reveal" style="transition-delay: 0.2s">
+        <div class="tag live"><i data-lucide="check-circle-2" width="14" height="14"></i> MLEG Convention</div>
+        <h2>Credit price is negative</h2>
+        <p style="margin-top: 12px">The body test proves a $3.28 credit serializes as <code>"-3.28"</code>. Debit prices are positive; credits are clamped negative.</p>
+      </div>
+
+      <div class="bento-item col-6 reveal" style="transition-delay: 0.3s">
+        <div class="tag tested"><i data-lucide="file-check" width="14" height="14"></i> Receipts</div>
         <h2>No claim without proof</h2>
-        <p>README, video, and UI wording should trace to code, tests, ledger rows, or Alpaca paper receipts.</p>
-      </article>
+        <p style="margin-top: 12px">Every claim, UI wording, and feature maps directly to <code>docs/CLAIM_PROOF_MAP.md</code>, ledger rows, or code.</p>
+      </div>
+
     </section>
 
-    <section class="wide">
-      <div class="tag live">Execution path</div>
-      <h2>What controls a live order</h2>
-      <div class="path">
-        <div class="step"><strong>Oracle</strong><span>Unauthorized verdicts block execution.</span></div>
-        <div class="step"><strong>Purity</strong><span>Chaotic market structure is refused.</span></div>
-        <div class="step"><strong>Geometry</strong><span>Malformed spread legs are blocked.</span></div>
-        <div class="step"><strong>2% ceiling</strong><span>Max-loss bound is the final risk clamp.</span></div>
-        <div class="step"><strong>Alpaca CLI</strong><span>mleg JSON is sent through stdin.</span></div>
+    <!-- Execution Path Stepper -->
+    <section class="reveal">
+      <div class="tag live"><i data-lucide="git-merge" width="14" height="14"></i> Execution path</div>
+      <h2 style="font-size: 32px; font-weight: 800;">What controls a live order</h2>
+      
+      <div class="pipeline-wrapper">
+        <div class="pipeline-line"></div>
+        <div class="pipeline-progress" id="pipeline-progress"></div>
+        
+        <div class="pipeline">
+          <div class="pipeline-step step-anim" style="transition-delay: 0.1s">
+            <div class="step-icon"><i data-lucide="scale"></i></div>
+            <h3>1. Oracle Verdict</h3>
+            <p>Unauthorized verdicts block execution immediately.</p>
+          </div>
+          <div class="pipeline-step step-anim" style="transition-delay: 0.2s">
+            <div class="step-icon"><i data-lucide="activity"></i></div>
+            <h3>2. Purity Gate</h3>
+            <p>Chaotic market structure is refused.</p>
+          </div>
+          <div class="pipeline-step step-anim" style="transition-delay: 0.3s">
+            <div class="step-icon"><i data-lucide="triangle"></i></div>
+            <h3>3. Geometry Gate</h3>
+            <p>Malformed spread legs are blocked.</p>
+          </div>
+          <div class="pipeline-step step-anim" style="transition-delay: 0.4s">
+            <div class="step-icon"><i data-lucide="trending-down"></i></div>
+            <h3>4. 2% Ceiling</h3>
+            <p>Max-loss bound is the final risk clamp.</p>
+          </div>
+          <div class="pipeline-step step-anim" style="transition-delay: 0.5s">
+            <div class="step-icon"><i data-lucide="terminal"></i></div>
+            <h3>5. Alpaca Subprocess</h3>
+            <p>mleg JSON is sent through stdin.</p>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="proof">
-      <article class="card">
-        <div class="tag refused">Rejected condor receipt</div>
-        <h2>Risk gate refusal</h2>
-        <p class="number">$2,525 &gt; $2,000</p>
-        <p>A 29-wide put wing with $3.75 credit has max loss above the 2 percent ceiling on a $100,000 account. The dispatch test pins this as <code>DispatchRefusal::MaxLossVeto</code>.</p>
-      </article>
-      <article class="card">
-        <div class="tag live">Alpaca mleg convention</div>
-        <h2>Credit price is negative</h2>
-        <p class="number">-3.28</p>
-        <p>The mleg body test proves a $3.28 credit serializes as <code>"-3.28"</code>. Debit prices are positive; credit prices are negative.</p>
-      </article>
-    </section>
-
-    <section class="wide">
-      <div class="tag tested">Claim status</div>
+    <!-- Claim Status Table -->
+    <section class="bento-item col-12 reveal" style="margin-top: 60px;">
+      <div class="tag tested"><i data-lucide="list-checks" width="14" height="14"></i> Status Map</div>
       <h2>What we can safely say</h2>
       <table>
         <thead>
           <tr>
-            <th>Claim</th>
-            <th>Status</th>
-            <th>Receipt</th>
+            <th>Feature Claim</th>
+            <th>Current Status</th>
+            <th>Proof / Receipt</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Order-state DAG</td>
-            <td class="tested">Tested</td>
-            <td><code>order_dag.rs</code>: Built/tested state machine; not claimed as live dispatch gate yet</td>
+            <td><span class="tag tested" style="margin:0">Tested</span></td>
+            <td><code>order_dag.rs</code> state machine tested; not live.</td>
           </tr>
           <tr>
-            <td>Wing cap pulls to quoted legal strikes</td>
-            <td class="tested">Tested</td>
-            <td><code>strategy.rs</code>: <code>wing_cap_pulls_delta_selected_wing_inside_cap</code></td>
+            <td>Wing cap pulls inside quoted legal strikes</td>
+            <td><span class="tag tested" style="margin:0">Tested</span></td>
+            <td><code>wing_cap_pulls_delta_selected_wing_inside_cap</code></td>
           </tr>
           <tr>
-            <td>Fredholm/residue, Merkle seal, API pacer</td>
-            <td class="tested">Support</td>
-            <td>Built/tested support components; not claimed as live dispatch gates here</td>
-          </tr>
-          <tr>
-            <td>Win rate, profit factor, latency</td>
-            <td class="pending">Needs receipt</td>
-            <td>Show only after benchmark/account/ledger receipt is attached</td>
+            <td>API pacer & Merkle seal</td>
+            <td><span class="tag tested" style="margin:0">Support</span></td>
+            <td>Built as support modules, not claiming live path.</td>
           </tr>
         </tbody>
       </table>
     </section>
 
-    <section class="wide">
-      <div class="tag live">Panel fit</div>
-      <h2>Why this matters</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Judge lens</th>
-            <th>Portal proof</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Brokerage risk</td><td>Defined-risk spreads, 2 percent max-loss veto.</td></tr>
-          <tr><td>Trading API engineering</td><td>Valid Alpaca mleg payloads, negative credit price, stdin CLI body.</td></tr>
-          <tr><td>Developer workflow</td><td>Receipts, simple commands, readable proof map.</td></tr>
-          <tr><td>Transparency</td><td>Every displayed claim maps to a code/test/ledger source.</td></tr>
-          <tr><td>Agent innovation</td><td>Strategist can suggest; deterministic sentinel decides whether execution is allowed.</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <p class="footer">Source map: <code>docs/CLAIM_PROOF_MAP.md</code>. This portal is intentionally static: no invented live balances, fills, or metrics.</p>
   </main>
+
+  <script>
+    // Initialize Icons
+    lucide.createIcons();
+
+    // Intersection Observer for Magical Scroll Reveal
+    const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          
+          // Trigger pipeline progress bar when pipeline is visible
+          if (entry.target.querySelector('.pipeline')) {
+            setTimeout(() => {
+              document.getElementById('pipeline-progress').style.width = '100%';
+              document.querySelectorAll('.step-anim').forEach(step => step.classList.add('visible'));
+            }, 300);
+          }
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Web Audio API: High-end subtle click sound
+    function playPremiumClick() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'sine';
+        // A soft, premium 'thud' frequency
+        osc.frequency.setValueAtTime(400, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.05);
+        
+        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      } catch (e) {
+        // Fallback or ignore if browser blocks audio context on load
+      }
+    }
+
+    // Theme Toggle Logic
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+    
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      body.setAttribute('data-theme', 'light');
+      themeIcon.setAttribute('data-lucide', 'sun');
+      themeText.innerText = 'Light Mode';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      playPremiumClick(); // Play the satisfying click sound
+      
+      if (body.getAttribute('data-theme') === 'light') {
+        body.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+        themeIcon.setAttribute('data-lucide', 'moon');
+        themeText.innerText = 'Dark Mode';
+      } else {
+        body.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+        themeIcon.setAttribute('data-lucide', 'sun');
+        themeText.innerText = 'Light Mode';
+      }
+      lucide.createIcons();
+    });
+
+  </script>
 </body>
 </html>

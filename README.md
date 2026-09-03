@@ -48,7 +48,13 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 - **1.5 µs Risk Guardrail Latency** ⚠️ `[NEEDS RECEIPT]`
 - **118 Tests Green** ⚠️ `[NEEDS FRESH SESSION RECEIPT]`
 
-> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the state transition, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
+> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
+
+[**Explore the Live Proof Portal**](https://13forge-proof-portal-sehrishmajeed08-2635s-projects.vercel.app)
+
+*Demo Video Placeholder: [Watch the 3-Minute 13forge Walkthrough](https://youtube.com/placeholder)*
+
+> **13forge** is a deterministic execution airlock. It prevents LLMs from writing live option orders by forcing them to negotiate through a bicameral S13 state vector, which is then verified against market structure and margin-physics limits before Alpaca is ever touched.
 
 ## 🧠 The Zero Generative Law
 
