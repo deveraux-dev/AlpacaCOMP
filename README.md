@@ -13,13 +13,13 @@
   [![Broker API](https://img.shields.io/badge/Broker-Alpaca_V2-34D399?style=for-the-badge)](https://alpaca.markets/)
 </div>
 
-## Start here
+## 🚀 Quick Links
 
-**[Open the live proof portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[Print the UI/UX demo packet](https://13forge-proof-portal.vercel.app/demo-portal/print.html)** | **[Read the source](https://github.com/deveraux-dev/AlpacaCOMP)**
+**[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[View Demo Print Packet](./demo-portal/print.html)** | **[Explore Source Code](https://github.com/deveraux-dev/AlpacaCOMP)**
 
-> **The 30-second version:** An AI may suggest an options trade, but it never gets a direct path to the broker. 13forge rebuilds the order from quoted market data, runs seven deterministic safety gates, and refuses the recorded trade when its calculated loss is `$2,525` against a `$2,000` ceiling. The broker process is never started.
+> **TL;DR:** An AI may suggest an options trade, but it never gets a direct path to the broker. 13forge rebuilds the order from quoted market data, runs seven deterministic safety gates, and refuses the trade if it breaches hard limits.
 
-### The moment that matters
+### ⚡ The Moment That Matters
 
 ```mermaid
 flowchart LR
@@ -36,32 +36,30 @@ flowchart LR
 
 This is the product in one sentence: **creative reasoning is allowed upstream; deterministic permission is required downstream.**
 
-## Why it exists
+## ✨ Why 13forge?
 
-Generative models are useful at finding ideas. They are not a safe place to put final authority over strikes, risk, or broker payloads. 13forge gives the model a narrow job and gives the execution path hard boundaries:
+Generative models are phenomenal at discovering ideas, but they are not a safe place to put final authority over strikes, risk, or broker payloads. 13forge gives the model a narrow job and gives the execution path hard boundaries:
 
-- the model emits a constrained thesis, not an order;
-- strategy code uses real `ChainQuote` data to assemble the spread;
-- seven refuse-by-default checks run before dispatch;
-- only a mathematically bounded result can reach the Alpaca CLI.
+- 🧠 **Smart Extraction:** The model emits a constrained thesis, not a raw order.
+- 🏗️ **Deterministic Assembly:** Strategy code uses real `ChainQuote` data to build the spread.
+- 🛑 **Strict Validation:** Seven refuse-by-default checks run before any dispatch occurs.
+- 🔐 **Guaranteed Safety:** Only a mathematically bounded result can reach the Alpaca CLI.
 
-The experience is designed to make a technical safety property feel obvious to a first-time judge: **the system proves what it refused, why it refused it, and what did not happen next.**
+The experience is designed to make a technical safety property feel obvious: **the system proves what it refused, why it refused it, and what did not happen next.**
 
-## Replay the proof
+## 🎥 Replay the Proof
 
 The deployed portal is a guided, static replay backed by repository evidence. It does not contain credentials, live balances, or a live order button.
 
-| Step | What the judge sees | Why it matters |
+| Step | What you will see | Why it matters |
 | --- | --- | --- |
 | 1 | An oversized iron condor proposal | A concrete failure, not an abstract architecture diagram |
-| 2 | Seven checks run in sequence | Safety is a path, not a single marketing claim |
-| 3 | `$2,525` maximum loss vs `$2,000` limit | The refusal is easy to verify mentally |
-| 4 | `DispatchRefusal::MaxLossVeto` | The human explanation maps to code |
+| 2 | Seven checks run in sequence | Safety is a holistic path, not a single marketing claim |
+| 3 | `$2,525` maximum loss vs `$2,000` limit | The refusal is perfectly transparent |
+| 4 | `DispatchRefusal::MaxLossVeto` | The human explanation maps directly to backend code |
 | 5 | "Broker process not started" | The system proves the prevented side effect |
 
-**[Run the replay](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[Download/print the packet](https://13forge-proof-portal.vercel.app/demo-portal/print.html)**
-
-## The seven-gate path
+## 🛤️ The Seven-Gate Path
 
 ```mermaid
 flowchart TD
@@ -127,9 +125,7 @@ We use a strict vocabulary so the README does not make a stronger claim than the
   </tr>
 </table>
 
-Metrics such as win rate, profit factor, latency, fills, and account balances are intentionally omitted until a fresh receipt supports them.
-
-## Architecture in plain English
+## 🏗️ Architecture in Plain English
 
 ```mermaid
 flowchart LR
@@ -180,7 +176,7 @@ The model is useful because it proposes a thesis. The Rust path is trusted becau
 
 The psychology is simple: reduce cognitive load, show a concrete consequence, and make trust visible through a receipt. A judge should feel oriented before they feel impressed.
 
-## Run locally
+## 💻 Run Locally
 
 The proof portal is plain static HTML and can be opened directly or served from the repository root. The Rust workspace requires a local Rust toolchain.
 
@@ -199,12 +195,7 @@ cargo run --example sim_today -p forge-daemon
 cargo run --example live_smoke -p forge-daemon
 ```
 
-## Links and ownership
-
-- **Live proof portal:** https://13forge-proof-portal.vercel.app/demo-portal/
-- **Print packet:** https://13forge-proof-portal.vercel.app/demo-portal/print.html
-- **Proof metadata:** https://13forge-proof-portal.vercel.app/demo-portal/proof-data.json
-- **Source repository:** https://github.com/deveraux-dev/AlpacaCOMP
+## 🔗 Project Architecture & Ownership
 
 This submission is maintained from a collaborator lane: frontend demo portal, README/docs, deployment preview, and presentation assets. The Rust engine, credentials, live trading behavior, and trading receipts remain owned by the core repository maintainers. Frontend copy mirrors backend receipts without editing backend code.
 
