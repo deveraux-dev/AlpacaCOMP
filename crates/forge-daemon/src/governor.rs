@@ -10,11 +10,19 @@
 //! thermal axis was correctly left absent rather than faked with a stub.
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI8, AtomicU32, AtomicU64, Ordering};
 use std::time::Duration;
+use crate::bifurcation::{LiquidationDetector, LiquidationRisk};
 
 /// Shared health telemetry the (not-yet-built) Alpaca CLI daemon loop would
 /// populate. Placeholder atomics — nothing writes them yet.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TrinaryState {
+    Accumulate = 1,  // +1: Normal operation, accept orders
+    Hold = 0,        // 0: Bifurcation ridge, HOLD, coast on momentum
+    Vent = -1,       // -1: Active backpressure release, reduce positions
+}
+
 #[derive(Debug, Default)]
 pub struct AlpacaDaemonHealth {
     /// Subprocess RSS, megabytes.
@@ -30,6 +38,16 @@ pub struct AlpacaDaemonHealth {
     /// Count of risk_router/oracle_arbiter refusals this tick — a gate fault
     /// is strain, same Signal Law as governor.rs's sensor_faults.
     pub risk_gate_faults: AtomicU32,
+    /// Account equity in basis points (fixed-point).
+    pub equity_bp: AtomicU64,
+    /// Maintenance requirement in basis points.
+    pub maintenance_bp: AtomicU64,
+    /// Governor's latest [`TrinaryState`] as `i8` (+1/0/-1), written once per
+    /// tick. `dispatch_spread` reads this as its cheapest, first-checked
+    /// gate — the feedback half of what was one-way telemetry. Derived
+    /// `Default` zero-inits this to `Hold` (0), not `Accumulate` (+1) —
+    /// safe, since only `Vent` (-1) trips the gate.
+    pub trinary_state: AtomicI8,
 }
 
 /// N-dimensional strain score. 0 = healthy, rising = stressed.
@@ -42,12 +60,13 @@ pub struct StrainScore {
     pub risk_gate_faults: u32,
     pub orphans_reaped: u32,
     pub sensor_faults: u32,
+    pub bifurcation_margin: u32, // 1 = liquidation risk critical, 0 = safe
 }
 
 impl StrainScore {
     pub fn total(&self) -> u32 {
         self.memory + self.order_ack_deadline + self.ws_staleness + self.pacer_pressure
-            + self.risk_gate_faults + self.orphans_reaped + self.sensor_faults
+            + self.risk_gate_faults + self.orphans_reaped + self.sensor_faults + self.bifurcation_margin
     }
 
     pub fn is_healthy(&self) -> bool {
@@ -62,6 +81,17 @@ impl StrainScore {
         self.risk_gate_faults = self.risk_gate_faults.max(other.risk_gate_faults);
         self.orphans_reaped = self.orphans_reaped.max(other.orphans_reaped);
         self.sensor_faults = self.sensor_faults.max(other.sensor_faults);
+        self.bifurcation_margin = self.bifurcation_margin.max(other.bifurcation_margin);
+    }
+
+    pub fn trinary_state(&self) -> TrinaryState {
+        if self.bifurcation_margin > 0 {
+            TrinaryState::Vent
+        } else if self.total() > 0 {
+            TrinaryState::Hold
+        } else {
+            TrinaryState::Accumulate
+        }
     }
 }
 
@@ -100,9 +130,12 @@ fn governor_loop(health: Arc<AlpacaDaemonHealth>) {
     let cfg = GovernorConfig::default();
     let mut tick: u32 = 0;
     let mut peak = StrainScore::default();
+    let mut liq_detector = LiquidationDetector::new(0.0);
+    #[allow(unused_assignments)]
+    let mut trinary = TrinaryState::Accumulate;
 
-    eprintln!("[governor] Autonomous Governor online (7 axes, 1s tick)");
-    eprintln!("[governor] note: orphan-reap axis has no process-enumeration backend in this repo yet — correctly absent, not stubbed to a fake pass");
+    eprintln!("[governor] Autonomous Governor online (8 axes: 7 system + 1 bifurcation, 1s tick)");
+    eprintln!("[governor] Trinary state: Accumulate (+1) | Hold (0) | Vent (-1)");
 
     loop {
         std::thread::sleep(Duration::from_secs(1));
@@ -149,6 +182,31 @@ fn governor_loop(health: Arc<AlpacaDaemonHealth>) {
             eprintln!("[governor] {gate_faults} risk-gate refusal(s) this tick");
         }
 
+        // ── Bifurcation margin (liquidation boundary) ────────────────────
+        let equity_bp = health.equity_bp.load(Ordering::Relaxed) as f64 / 10000.0;
+        let maint_bp = health.maintenance_bp.load(Ordering::Relaxed) as f64 / 10000.0;
+        if equity_bp > 0.0 && maint_bp > 0.0 {
+            liq_detector.set_maintenance(maint_bp);
+            let metrics = liq_detector.ingest(equity_bp);
+            match metrics.risk_state {
+                LiquidationRisk::CircuitBreaker => {
+                    score.bifurcation_margin = 1;
+                    eprintln!("[governor] BIFURCATION CIRCUIT BREAKER: backpressure={:.2} margin={:.2}% accel={:.4}",
+                        metrics.backpressure, metrics.margin_to_threshold * 100.0, metrics.acceleration);
+                }
+                LiquidationRisk::Critical => {
+                    eprintln!("[governor] liquidation risk CRITICAL: margin={:.2}% accel={:.4}",
+                        metrics.margin_to_threshold * 100.0, metrics.acceleration);
+                }
+                LiquidationRisk::Caution => {
+                    if tick % 10 == 0 {
+                        eprintln!("[governor] liquidation caution: margin={:.2}%", metrics.margin_to_threshold * 100.0);
+                    }
+                }
+                LiquidationRisk::Safe => {}
+            }
+        }
+
         // ── Orphan reap: correctly absent, no manufactured pass ─────────
         // No process-enumeration backend exists in this repo yet (the
         // Windows `warden` crate this axis depended on in the source
@@ -158,15 +216,23 @@ fn governor_loop(health: Arc<AlpacaDaemonHealth>) {
         let _ = cfg.reap_cooldown_ticks;
 
         peak.max_with(&score);
+        trinary = score.trinary_state();
+        health.trinary_state.store(trinary as i8, Ordering::Relaxed);
 
         if tick % 60 == 0 {
+            let state_str = match trinary {
+                TrinaryState::Accumulate => "+1 ACCUMULATE (normal trading)",
+                TrinaryState::Hold => "0 HOLD (coasting, no new orders)",
+                TrinaryState::Vent => "-1 VENT (active position reduction)",
+            };
             if !peak.is_healthy() {
                 eprintln!(
-                    "[governor] StrainScore peak@{tick}: total={} (mem={} ack={} ws={} pacer={} gate={} reap={} sensor={})",
+                    "[governor] StrainScore peak@{tick}: total={} (mem={} ack={} ws={} pacer={} gate={} reap={} sensor={} bifurc={})",
                     peak.total(), peak.memory, peak.order_ack_deadline, peak.ws_staleness,
-                    peak.pacer_pressure, peak.risk_gate_faults, peak.orphans_reaped, peak.sensor_faults,
+                    peak.pacer_pressure, peak.risk_gate_faults, peak.orphans_reaped, peak.sensor_faults, peak.bifurcation_margin,
                 );
             }
+            eprintln!("[governor] Trinary State: {}", state_str);
             peak = StrainScore::default();
         }
     }
@@ -178,7 +244,7 @@ mod tests {
 
     #[test]
     fn strain_score_totals_all_axes() {
-        let s = StrainScore { memory: 1, order_ack_deadline: 1, ws_staleness: 1, pacer_pressure: 1, risk_gate_faults: 2, orphans_reaped: 0, sensor_faults: 1 };
+        let s = StrainScore { memory: 1, order_ack_deadline: 1, ws_staleness: 1, pacer_pressure: 1, risk_gate_faults: 2, orphans_reaped: 0, sensor_faults: 1, bifurcation_margin: 0 };
         assert_eq!(s.total(), 7);
         assert!(!s.is_healthy());
     }

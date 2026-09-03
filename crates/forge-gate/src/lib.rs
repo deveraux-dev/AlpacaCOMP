@@ -8,6 +8,7 @@ pub mod market_purity;
 pub mod merkle_seal;
 pub mod oracle_arbiter;
 pub mod order_dag;
+pub mod purity_smoother;
 pub mod regime_router;
 pub mod residue;
 pub mod risk_router;

@@ -203,6 +203,53 @@ pub fn build_iron_butterfly(quotes: &[ChainQuote], wing_delta: f64, max_deviatio
     ])
 }
 
+/// Bull put spread (2-leg, net CREDIT): sell the `short_delta` OTM put, buy
+/// the further-OTM `long_delta` put as the defined-risk wing. Deliberately a
+/// credit structure, not a bull call debit spread — `risk_router::
+/// exceeds_max_loss_veto`'s `width*100 - credit*100` arithmetic is only
+/// correct for credit spreads, and reusing it unchanged (rather than adding
+/// a second, debit-shaped veto formula) is the whole point of matching the
+/// condor/butterfly convention. Same polysynthetic assembly + wing-cap
+/// pull-in discipline as [`build_iron_condor`]: an over-wide honest wing
+/// pulls in to the widest quoted strike inside `max_wing_width`, but never
+/// rescues a missing delta.
+pub fn build_bull_put_spread(quotes: &[ChainQuote], short_delta: f64, long_delta: f64, max_deviation: f64, max_wing_width: f64) -> Option<[Leg; 2]> {
+    let short_put = nearest_put_delta(quotes, short_delta, max_deviation)?;
+    let delta_put = nearest_put_delta(quotes, long_delta, max_deviation)?;
+    let long_put = if short_put.strike - delta_put.strike <= max_wing_width {
+        delta_put
+    } else {
+        widest_put_wing_within(quotes, short_put.strike, max_wing_width)?
+    };
+    if long_put.strike >= short_put.strike {
+        return None; // Wing must sit outside (below) the short strike.
+    }
+    Some([
+        Leg { strike: short_put.strike, is_call: false, side: Side::Sell },
+        Leg { strike: long_put.strike, is_call: false, side: Side::Buy },
+    ])
+}
+
+/// Bear call spread (2-leg, net CREDIT) mirror of [`build_bull_put_spread`]:
+/// sell the `short_delta` OTM call, buy the further-OTM `long_delta` call.
+/// Same credit-only rationale and wing-cap discipline.
+pub fn build_bear_call_spread(quotes: &[ChainQuote], short_delta: f64, long_delta: f64, max_deviation: f64, max_wing_width: f64) -> Option<[Leg; 2]> {
+    let short_call = nearest_call_delta(quotes, short_delta, max_deviation)?;
+    let delta_call = nearest_call_delta(quotes, long_delta, max_deviation)?;
+    let long_call = if delta_call.strike - short_call.strike <= max_wing_width {
+        delta_call
+    } else {
+        widest_call_wing_within(quotes, short_call.strike, max_wing_width)?
+    };
+    if long_call.strike <= short_call.strike {
+        return None; // Wing must sit outside (above) the short strike.
+    }
+    Some([
+        Leg { strike: short_call.strike, is_call: true, side: Side::Sell },
+        Leg { strike: long_call.strike, is_call: true, side: Side::Buy },
+    ])
+}
+
 /// Rule 3: pick the available expiration closest to the 45 DTE target.
 /// `None` on an empty list.
 pub fn nearest_target_dte(available_dtes: &[u32], target_dte: u32) -> Option<u32> {
@@ -366,6 +413,65 @@ mod tests {
             ChainQuote { strike: 815.0, call_delta: 0.05, put_delta: -0.95 },
         ];
         assert!(build_iron_condor(&chain, 0.16, 0.05, 0.01, 20.0).is_none());
+    }
+
+    #[test]
+    fn builds_bull_put_spread_from_16_5_delta_wings() {
+        let chain = synthetic_chain();
+        let legs = build_bull_put_spread(&chain, 0.16, 0.05, 0.01, 100.0).expect("bull put spread should build");
+        assert_eq!(legs[0], Leg { strike: 95.0, is_call: false, side: Side::Sell }); // short 16d put
+        assert_eq!(legs[1], Leg { strike: 90.0, is_call: false, side: Side::Buy });  // long 5d put wing
+    }
+
+    #[test]
+    fn builds_bear_call_spread_from_16_5_delta_wings() {
+        let chain = synthetic_chain();
+        let legs = build_bear_call_spread(&chain, 0.16, 0.05, 0.01, 100.0).expect("bear call spread should build");
+        assert_eq!(legs[0], Leg { strike: 105.0, is_call: true, side: Side::Sell }); // short 16d call
+        assert_eq!(legs[1], Leg { strike: 110.0, is_call: true, side: Side::Buy });  // long 5d call wing
+    }
+
+    #[test]
+    fn refuses_bull_put_spread_when_wing_delta_missing_from_book() {
+        let thin_chain = [
+            ChainQuote { strike: 95.0, call_delta: 0.80, put_delta: -0.16 },
+            ChainQuote { strike: 100.0, call_delta: 0.50, put_delta: -0.50 },
+            ChainQuote { strike: 105.0, call_delta: 0.16, put_delta: -0.80 },
+        ];
+        assert!(build_bull_put_spread(&thin_chain, 0.16, 0.05, 0.02, 100.0).is_none());
+    }
+
+    #[test]
+    fn refuses_bear_call_spread_when_wing_delta_missing_from_book() {
+        let thin_chain = [
+            ChainQuote { strike: 95.0, call_delta: 0.80, put_delta: -0.16 },
+            ChainQuote { strike: 100.0, call_delta: 0.50, put_delta: -0.50 },
+            ChainQuote { strike: 105.0, call_delta: 0.16, put_delta: -0.80 },
+        ];
+        assert!(build_bear_call_spread(&thin_chain, 0.16, 0.05, 0.02, 100.0).is_none());
+    }
+
+    #[test]
+    fn wing_cap_pulls_bull_put_wing_inside_cap() {
+        // Same book shape as wing_cap_pulls_delta_selected_wing_inside_cap,
+        // put side only: 29-wide 5-delta wing is over a 20-point cap, must
+        // pull in to the widest quoted strike inside it (700, 19 out).
+        let chain = [
+            ChainQuote { strike: 690.0, call_delta: 0.99, put_delta: -0.05 }, // 29 out: over cap
+            ChainQuote { strike: 700.0, call_delta: 0.97, put_delta: -0.08 }, // 19 out: widest legal
+            ChainQuote { strike: 719.0, call_delta: 0.84, put_delta: -0.16 }, // short put
+        ];
+        let legs = build_bull_put_spread(&chain, 0.16, 0.05, 0.01, 20.0).expect("capped bull put spread should build");
+        assert_eq!(legs[1], Leg { strike: 700.0, is_call: false, side: Side::Buy });
+    }
+
+    #[test]
+    fn wing_cap_refuses_bull_put_when_no_quoted_strike_fits() {
+        let chain = [
+            ChainQuote { strike: 690.0, call_delta: 0.99, put_delta: -0.05 }, // 29 out: over 20 cap
+            ChainQuote { strike: 719.0, call_delta: 0.84, put_delta: -0.16 },
+        ];
+        assert!(build_bull_put_spread(&chain, 0.16, 0.05, 0.01, 20.0).is_none());
     }
 
     #[test]

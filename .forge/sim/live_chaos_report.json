@@ -1,0 +1,51 @@
+{
+  "system_status": "SECURE (ALL GATES HOLDING)",
+  "tick": 5,
+  "gates_tested": 6,
+  "gates_defended": 6,
+  "gates_failed": 0,
+  "live_sabotage_logs": [
+    {
+      "tick": 0,
+      "gate_name": "Gate A: Illegal Transition",
+      "threat_description": "Order attempts SpreadOpen while already SpreadOpen — un-witnessed edge.",
+      "status": "DEFENDED",
+      "detail": "refused as expected: IllegalTransition"
+    },
+    {
+      "tick": 1,
+      "gate_name": "Gate B: Verdict Veto",
+      "threat_description": "Dual-oracle disagreement escalates to CriticalEscalation — no trade.",
+      "status": "DEFENDED",
+      "detail": "refused as expected: VerdictVeto"
+    },
+    {
+      "tick": 2,
+      "gate_name": "Gate C: Chaotic Book",
+      "threat_description": "Uniform volume across strikes — 0 pmy, volume-dead chain, below floor.",
+      "status": "DEFENDED",
+      "detail": "refused as expected: ChaoticBook"
+    },
+    {
+      "tick": 3,
+      "gate_name": "Gate D: Malformed Legs",
+      "threat_description": "Both put legs submitted sell-side — no short/long pair, unhedged risk.",
+      "status": "DEFENDED",
+      "detail": "refused as expected: MalformedLegs"
+    },
+    {
+      "tick": 4,
+      "gate_name": "Gate E: Max-Loss Veto",
+      "threat_description": "29-wide put wing on $3.75 credit — max loss exceeds 2% of $100k balance.",
+      "status": "DEFENDED",
+      "detail": "refused as expected: MaxLossVeto"
+    },
+    {
+      "tick": 5,
+      "gate_name": "Gate F: CLI Refusal",
+      "threat_description": "All five in-process gates pass — final seam is the API subprocess itself.",
+      "status": "DEFENDED",
+      "detail": "refused as expected: Cli(ExeNotFound(\"Z:\\\\nope\\\\alpaca.exe\"))"
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 //! the CLI subprocess ever spawns. Refusals are typed and feed the governor's
 //! risk_gate_faults axis. JSON body enters `alpaca api POST /v2/orders` argv-free.
 
+use std::sync::atomic::Ordering;
+
 use forge_gate::market_purity::NormalizedIpr;
 use forge_gate::oracle_arbiter::OracleVerdict;
 use forge_gate::order_dag::{AllowedTransition, OrderStateDag};
@@ -10,6 +12,7 @@ use forge_gate::strategy::{Leg, Side};
 
 use crate::alpaca_cli::{AlpacaCli, CliRefusal};
 use crate::config::AlpacaCredentials;
+use crate::governor::{AlpacaDaemonHealth, TrinaryState};
 
 /// Live position lifecycle states witnessed in [`LIVE_ORDER_DAG`].
 pub const STATE_FLAT: u32 = 0;
@@ -34,6 +37,9 @@ pub const CHAIN_PURITY_CEILING_PMY: u16 = 7500;
 
 #[derive(Debug, PartialEq)]
 pub enum DispatchRefusal {
+    /// Governor's live `TrinaryState` is `Vent` — active backpressure
+    /// release, no new orders. Cheapest gate, checked first.
+    GovernorVent,
     /// Position-state transition not witnessed in [`LIVE_ORDER_DAG`].
     IllegalTransition,
     /// Arbiter verdict does not authorize neutral spreads.
@@ -54,11 +60,11 @@ pub fn occ_symbol(root: &str, yymmdd: &str, is_call: bool, strike: f64) -> Strin
     format!("{root}{yymmdd}{}{:08}", if is_call { 'C' } else { 'P' }, (strike * 1000.0).round() as u64)
 }
 
-/// Build the `order_class=mleg` limit-order body for a 4-leg spread.
+/// Build the `order_class=mleg` limit-order body for a 2- or 4-leg spread.
 /// `limit_price` sign per Alpaca mleg convention (verified 2026-09-01,
 /// docs.alpaca.markets + alpaca.markets/learn): net credit = NEGATIVE,
 /// net debit = positive. A credit condor entry MUST pass a negative value.
-pub fn mleg_body(root: &str, yymmdd: &str, legs: &[Leg; 4], qty: u32, limit_price: f64) -> String {
+pub fn mleg_body(root: &str, yymmdd: &str, legs: &[Leg], qty: u32, limit_price: f64) -> String {
     let leg_json: Vec<String> = legs
         .iter()
         .map(|l| {
@@ -76,14 +82,19 @@ pub fn mleg_body(root: &str, yymmdd: &str, legs: &[Leg; 4], qty: u32, limit_pric
     )
 }
 
-/// Widest wing of the spread in strike dollars — the max-loss driver.
-fn max_wing_width(legs: &[Leg; 4]) -> f64 {
-    let call_w = width(legs, true);
-    let put_w = width(legs, false);
+/// Widest wing of the spread in strike dollars — the max-loss driver. A
+/// single-sided (2-leg vertical) spread has no legs on the other side; that
+/// side contributes 0, not `INFINITY` — `INFINITY` would mean "malformed",
+/// which a same-side-only spread is not.
+fn max_wing_width(legs: &[Leg]) -> f64 {
+    let has_call = legs.iter().any(|l| l.is_call);
+    let has_put = legs.iter().any(|l| !l.is_call);
+    let call_w = if has_call { width(legs, true) } else { 0.0 };
+    let put_w = if has_put { width(legs, false) } else { 0.0 };
     if call_w > put_w { call_w } else { put_w }
 }
 
-fn width(legs: &[Leg; 4], calls: bool) -> f64 {
+fn width(legs: &[Leg], calls: bool) -> f64 {
     let mut short = None;
     let mut long = None;
     for l in legs.iter().filter(|l| l.is_call == calls) {
@@ -99,15 +110,17 @@ fn width(legs: &[Leg; 4], calls: bool) -> f64 {
 }
 
 /// Gate, then dispatch. Order of gates is deliberate: cheapest verdict first,
-/// subprocess last — a refused order costs zero syscalls.
+/// subprocess last — a refused order costs zero syscalls. Accepts 2-leg
+/// vertical spreads and 4-leg condor/butterfly structures alike.
 #[allow(clippy::too_many_arguments)]
 pub fn dispatch_spread(
     cli: &AlpacaCli,
     creds: &AlpacaCredentials,
+    health: &AlpacaDaemonHealth,
     position_state: u32,
     verdict: OracleVerdict,
     purity: &NormalizedIpr,
-    legs: &[Leg; 4],
+    legs: &[Leg],
     entry_credit: f64,
     account_balance: f64,
     root: &str,
@@ -115,27 +128,35 @@ pub fn dispatch_spread(
     qty: u32,
     limit_price: f64,
 ) -> Result<String, DispatchRefusal> {
+    let refuse = |health: &AlpacaDaemonHealth, refusal: DispatchRefusal| {
+        health.risk_gate_faults.fetch_add(1, Ordering::Relaxed);
+        refusal
+    };
+
+    if health.trinary_state.load(Ordering::Relaxed) == TrinaryState::Vent as i8 {
+        return Err(refuse(health, DispatchRefusal::GovernorVent));
+    }
     if !LIVE_ORDER_DAG.validate_path(&[position_state, STATE_SPREAD_OPEN]) {
-        return Err(DispatchRefusal::IllegalTransition);
+        return Err(refuse(health, DispatchRefusal::IllegalTransition));
     }
     match verdict {
         OracleVerdict::StructuralEquilibrium | OracleVerdict::ScheduledMaintenance => {}
-        _ => return Err(DispatchRefusal::VerdictVeto),
+        _ => return Err(refuse(health, DispatchRefusal::VerdictVeto)),
     }
     if purity.pmy < CHAIN_PURITY_FLOOR_PMY || purity.pmy > CHAIN_PURITY_CEILING_PMY {
-        return Err(DispatchRefusal::ChaoticBook);
+        return Err(refuse(health, DispatchRefusal::ChaoticBook));
     }
     let wing = max_wing_width(legs);
     if !wing.is_finite() {
-        return Err(DispatchRefusal::MalformedLegs);
+        return Err(refuse(health, DispatchRefusal::MalformedLegs));
     }
     if exceeds_max_loss_veto(wing, entry_credit, account_balance) {
-        return Err(DispatchRefusal::MaxLossVeto);
+        return Err(refuse(health, DispatchRefusal::MaxLossVeto));
     }
 
     let body = mleg_body(root, yymmdd, legs, qty, limit_price);
     cli.run_with_stdin(creds, &["api", "POST", "/v2/orders", "--body", "@-"], body.as_bytes())
-        .map_err(DispatchRefusal::Cli)
+        .map_err(|e| refuse(health, DispatchRefusal::Cli(e)))
 }
 
 #[cfg(test)]
@@ -211,10 +232,10 @@ mod tests {
     fn refused_without_subprocess(
         verdict: OracleVerdict,
         purity: &NormalizedIpr,
-        legs: &[Leg; 4],
+        legs: &[Leg],
         credit: f64,
         balance: f64,
-    ) -> DispatchRefusal {
+    ) -> (DispatchRefusal, AlpacaDaemonHealth) {
         // A nonexistent exe proves refusal happened BEFORE any spawn attempt:
         // reaching the CLI would return ExeNotFound instead of the gate error.
         let cli = AlpacaCli::new(r"Z:\nope\alpaca.exe");
@@ -223,8 +244,71 @@ mod tests {
             secret_key: crate::secrets::SecureSecret::new(b"s".to_vec()),
             base_url: String::new(),
         };
-        dispatch_spread(&cli, &creds, STATE_FLAT, verdict, purity, legs, credit, balance, "SPY", "261016", 1, 3.50)
-            .unwrap_err()
+        let health = AlpacaDaemonHealth::default();
+        let refusal = dispatch_spread(&cli, &creds, &health, STATE_FLAT, verdict, purity, legs, credit, balance, "SPY", "261016", 1, 3.50)
+            .unwrap_err();
+        (refusal, health)
+    }
+
+    #[test]
+    fn two_leg_bull_put_spread_dispatches_as_mleg_with_two_legs() {
+        // Vertical spreads are 2-leg, not 4: dispatch_spread must accept a
+        // slice and reach the CLI layer (ExeNotFound = proof every gate
+        // passed and mleg_body serialized correctly) rather than tripping
+        // MalformedLegs just because there's no matching call side.
+        let legs: [Leg; 2] = [
+            Leg { strike: 795.0, is_call: false, side: Side::Sell },
+            Leg { strike: 780.0, is_call: false, side: Side::Buy },
+        ];
+        let cli = AlpacaCli::new(r"Z:\nope\alpaca.exe");
+        let creds = crate::config::AlpacaCredentials {
+            key_id: crate::secrets::SecureSecret::new(b"k".to_vec()),
+            secret_key: crate::secrets::SecureSecret::new(b"s".to_vec()),
+            base_url: String::new(),
+        };
+        let health = AlpacaDaemonHealth::default();
+        let r = dispatch_spread(
+            &cli, &creds, &health, STATE_FLAT, OracleVerdict::StructuralEquilibrium,
+            &calm_book(), &legs, 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
+        )
+        .unwrap_err();
+        assert_eq!(r, DispatchRefusal::Cli(CliRefusal::ExeNotFound(r"Z:\nope\alpaca.exe".into())));
+    }
+
+    #[test]
+    fn two_short_puts_with_no_long_wing_is_malformed() {
+        // Two same-side legs with no matched long leg must still refuse —
+        // the has_call/has_put fix must not silently pass an incomplete
+        // put-side pair just because the (now-correctly-0) call side is
+        // finite.
+        let legs: [Leg; 2] = [
+            Leg { strike: 795.0, is_call: false, side: Side::Sell },
+            Leg { strike: 780.0, is_call: false, side: Side::Sell },
+        ];
+        let (refusal, _) = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &calm_book(), &legs, 3.75, 100_000.0);
+        assert_eq!(refusal, DispatchRefusal::MalformedLegs);
+    }
+
+    #[test]
+    fn governor_vent_refuses_before_any_other_gate() {
+        // Even with an unwitnessed position_state (999, which alone would
+        // trip IllegalTransition), a Vent trinary_state must refuse FIRST —
+        // it's checked before LIVE_ORDER_DAG.validate_path.
+        let cli = AlpacaCli::new(r"Z:\nope\alpaca.exe");
+        let creds = crate::config::AlpacaCredentials {
+            key_id: crate::secrets::SecureSecret::new(b"k".to_vec()),
+            secret_key: crate::secrets::SecureSecret::new(b"s".to_vec()),
+            base_url: String::new(),
+        };
+        let health = AlpacaDaemonHealth::default();
+        health.trinary_state.store(TrinaryState::Vent as i8, Ordering::Relaxed);
+        let r = dispatch_spread(
+            &cli, &creds, &health, 999, OracleVerdict::StructuralEquilibrium,
+            &calm_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
+        )
+        .unwrap_err();
+        assert_eq!(r, DispatchRefusal::GovernorVent);
+        assert_eq!(health.risk_gate_faults.load(Ordering::Relaxed), 1);
     }
 
     #[test]
@@ -237,12 +321,14 @@ mod tests {
             secret_key: crate::secrets::SecureSecret::new(b"s".to_vec()),
             base_url: String::new(),
         };
+        let health = AlpacaDaemonHealth::default();
         let r = dispatch_spread(
-            &cli, &creds, STATE_SPREAD_OPEN, OracleVerdict::StructuralEquilibrium,
+            &cli, &creds, &health, STATE_SPREAD_OPEN, OracleVerdict::StructuralEquilibrium,
             &calm_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
         )
         .unwrap_err();
         assert_eq!(r, DispatchRefusal::IllegalTransition);
+        assert_eq!(health.risk_gate_faults.load(Ordering::Relaxed), 1);
     }
 
     #[test]
@@ -253,12 +339,14 @@ mod tests {
             secret_key: crate::secrets::SecureSecret::new(b"s".to_vec()),
             base_url: String::new(),
         };
+        let health = AlpacaDaemonHealth::default();
         let r = dispatch_spread(
-            &cli, &creds, 999, OracleVerdict::StructuralEquilibrium,
+            &cli, &creds, &health, 999, OracleVerdict::StructuralEquilibrium,
             &calm_book(), &narrow_condor(), 3.75, 100_000.0, "SPY", "261016", 1, -3.50,
         )
         .unwrap_err();
         assert_eq!(r, DispatchRefusal::IllegalTransition);
+        assert_eq!(health.risk_gate_faults.load(Ordering::Relaxed), 1);
     }
 
     #[test]
@@ -270,16 +358,18 @@ mod tests {
 
     #[test]
     fn critical_verdict_is_refused_before_spawn() {
-        let r = refused_without_subprocess(OracleVerdict::CriticalEscalation, &calm_book(), &condor(), 3.75, 100_000.0);
+        let (r, health) = refused_without_subprocess(OracleVerdict::CriticalEscalation, &calm_book(), &condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::VerdictVeto);
+        assert_eq!(health.risk_gate_faults.load(Ordering::Relaxed), 1);
     }
 
     #[test]
     fn chaotic_book_is_refused_before_spawn() {
         // Uniform volume = 0 pmy = below floor (volume-dead chain): refused.
         let uniform = NormalizedIpr::compute_u16(&[100, 100, 100, 100]);
-        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &uniform, &condor(), 3.75, 100_000.0);
+        let (r, health) = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &uniform, &condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::ChaoticBook);
+        assert_eq!(health.risk_gate_faults.load(Ordering::Relaxed), 1);
     }
 
     #[test]
@@ -287,8 +377,9 @@ mod tests {
         // One contract swallowing the volume reads above CHAIN_PURITY_CEILING_PMY:
         // the band refuses BOTH ends, not just diffuse.
         assert!(panic_spike_book().pmy > CHAIN_PURITY_CEILING_PMY);
-        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &panic_spike_book(), &condor(), 3.75, 100_000.0);
+        let (r, health) = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &panic_spike_book(), &condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::ChaoticBook);
+        assert_eq!(health.risk_gate_faults.load(Ordering::Relaxed), 1);
     }
 
     #[test]
@@ -302,15 +393,19 @@ mod tests {
         // The 2026-09-01 sim pick: 29-wide put wing, $3.75 credit.
         // Max loss (29 - 3.75) * 100 = $2,525 > 2% of $100k. REFUSED — the
         // strategy layer must cap wings, not the gate loosen.
-        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &calm_book(), &condor(), 3.75, 100_000.0);
+        let (r, health) = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &calm_book(), &condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::MaxLossVeto);
+        assert_eq!(health.risk_gate_faults.load(Ordering::Relaxed), 1);
     }
 
     #[test]
     fn a_clean_gate_pass_reaches_the_cli_layer() {
         // 20-wide wings: max loss (20 - 3.75) * 100 = $1,625 < $2,000 -> all
         // gates pass and the refusal comes from the (deliberately dead) CLI.
-        let r = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &calm_book(), &narrow_condor(), 3.75, 100_000.0);
+        let (r, health) = refused_without_subprocess(OracleVerdict::StructuralEquilibrium, &calm_book(), &narrow_condor(), 3.75, 100_000.0);
         assert_eq!(r, DispatchRefusal::Cli(CliRefusal::ExeNotFound(r"Z:\nope\alpaca.exe".into())));
+        // The CLI refusal still trips the governor's fault axis (Signal Law:
+        // every refusal is loud, not just the pre-spawn gates).
+        assert_eq!(health.risk_gate_faults.load(Ordering::Relaxed), 1);
     }
 }

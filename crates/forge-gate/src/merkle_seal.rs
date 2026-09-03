@@ -153,6 +153,140 @@ pub fn merkle_root(payload: &[u8]) -> [u8; 32] {
     acc.unwrap_or([0u8; 32])
 }
 
+/// Which side of a combine step the sibling hash sits on, relative to the
+/// leaf's running ancestor value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Side {
+    Left,
+    Right,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Sibling {
+    pub hash: [u8; 32],
+    pub side: Side,
+}
+
+/// One leaf's O(log N) ancestor path to the root — 08_THE_MERKLE_MORIN_
+/// ARCHITECTURE.md §3.1's leaf-path audit, net-new (source header/fold had
+/// no proof half; drain confirmed absent repo- and quarry-wide).
+#[derive(Debug, Clone, Copy)]
+pub struct LeafProof {
+    pub siblings: [Sibling; MAX_DEPTH],
+    pub len: usize,
+}
+
+/// Build `leaf_index`'s proof against `payload`'s [`merkle_root`]. Replays
+/// the identical binary-carry fold, tracking the one leaf's running
+/// ancestor value through every combine it participates in, in both the
+/// per-leaf carry loop and the final peak-bagging pass. `None` if
+/// `leaf_index` is out of range.
+pub fn prove_leaf(payload: &[u8], leaf_index: usize) -> Option<LeafProof> {
+    let num_leaves = payload.chunks(LEAF_BYTES).count();
+    if leaf_index >= num_leaves {
+        return None;
+    }
+
+    let mut stack = [[0u8; 32]; MAX_DEPTH];
+    let mut filled = [false; MAX_DEPTH];
+    let mut proof = LeafProof { siblings: [Sibling { hash: [0u8; 32], side: Side::Left }; MAX_DEPTH], len: 0 };
+    let mut parked_at: Option<usize> = None;
+    let mut active = false;
+
+    for (idx, chunk) in payload.chunks(LEAF_BYTES).enumerate() {
+        let mut leaf = [0u8; LEAF_BYTES];
+        leaf[..chunk.len()].copy_from_slice(chunk);
+        let mut node: [u8; 32] = Sha256::digest(leaf).into();
+        if idx == leaf_index {
+            active = true;
+        }
+
+        let mut level = 0;
+        while level < MAX_DEPTH && filled[level] {
+            if parked_at == Some(level) {
+                proof.siblings[proof.len] = Sibling { hash: node, side: Side::Right };
+                proof.len += 1;
+                active = true;
+                parked_at = None;
+            } else if active {
+                proof.siblings[proof.len] = Sibling { hash: stack[level], side: Side::Left };
+                proof.len += 1;
+            }
+            let mut h = Sha256::new();
+            h.update(stack[level]);
+            h.update(node);
+            node = h.finalize().into();
+            filled[level] = false;
+            level += 1;
+        }
+        if level < MAX_DEPTH {
+            stack[level] = node;
+            filled[level] = true;
+            if active {
+                parked_at = Some(level);
+                active = false;
+            }
+        }
+    }
+
+    let mut acc: Option<[u8; 32]> = None;
+    for level in 0..MAX_DEPTH {
+        if !filled[level] {
+            continue;
+        }
+        acc = Some(match acc {
+            None => {
+                if parked_at == Some(level) {
+                    active = true;
+                }
+                stack[level]
+            }
+            Some(right) => {
+                if parked_at == Some(level) {
+                    proof.siblings[proof.len] = Sibling { hash: right, side: Side::Right };
+                    proof.len += 1;
+                    active = true;
+                    parked_at = None;
+                } else if active {
+                    proof.siblings[proof.len] = Sibling { hash: stack[level], side: Side::Left };
+                    proof.len += 1;
+                }
+                let mut h = Sha256::new();
+                h.update(stack[level]);
+                h.update(right);
+                h.finalize().into()
+            }
+        });
+    }
+
+    Some(proof)
+}
+
+/// Recompute `leaf`'s ancestor path through `proof` and compare to `root`
+/// — O(log N) sequential SHA-256 hashes, no payload replay.
+pub fn verify_leaf(leaf: &[u8], proof: &LeafProof, root: [u8; 32]) -> bool {
+    let mut padded = [0u8; LEAF_BYTES];
+    let n = leaf.len().min(LEAF_BYTES);
+    padded[..n].copy_from_slice(&leaf[..n]);
+    let mut node: [u8; 32] = Sha256::digest(padded).into();
+
+    for sib in &proof.siblings[..proof.len] {
+        let mut h = Sha256::new();
+        match sib.side {
+            Side::Left => {
+                h.update(sib.hash);
+                h.update(node);
+            }
+            Side::Right => {
+                h.update(node);
+                h.update(sib.hash);
+            }
+        }
+        node = h.finalize().into();
+    }
+    node == root
+}
+
 /// Zero-copy verified container: header parse, bounds check, then a full
 /// root recomputation over the payload — refuse on any mismatch.
 #[derive(Debug, Clone)]
@@ -187,6 +321,75 @@ impl<'a> SealedPayload<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const MAX_TEST_LEAVES: usize = 17;
+
+    fn test_payload() -> [u8; MAX_TEST_LEAVES * LEAF_BYTES] {
+        let mut buf = [0u8; MAX_TEST_LEAVES * LEAF_BYTES];
+        for (i, b) in buf.iter_mut().enumerate() {
+            *b = (i % 251) as u8;
+        }
+        buf
+    }
+
+    #[test]
+    fn every_leaf_proves_against_the_independently_computed_root() {
+        // Dual-oracle: merkle_root() is the first oracle (root), verify_leaf
+        // via prove_leaf is the second, independent path. Sweeps leaf counts
+        // across several binary-carry boundaries (1, 2, 3, 4, 5, 7, 8, 9, 16,
+        // 17 leaves) so every carry/park/final-bagging code path fires.
+        let buf = test_payload();
+        for num_leaves in [1usize, 2, 3, 4, 5, 7, 8, 9, 16, 17] {
+            let payload = &buf[..num_leaves * LEAF_BYTES];
+            let root = merkle_root(payload);
+            for leaf_index in 0..num_leaves {
+                let proof = prove_leaf(payload, leaf_index).expect("leaf in range must prove");
+                let leaf_bytes = &payload[leaf_index * LEAF_BYTES..(leaf_index + 1) * LEAF_BYTES];
+                assert!(
+                    verify_leaf(leaf_bytes, &proof, root),
+                    "leaf {leaf_index} of {num_leaves} must verify against the independently computed root"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_tampered_leaf_fails_verification() {
+        let buf = test_payload();
+        let payload = &buf[..9 * LEAF_BYTES];
+        let root = merkle_root(payload);
+        let proof = prove_leaf(payload, 4).unwrap();
+        let mut tampered = [0u8; LEAF_BYTES];
+        tampered.copy_from_slice(&payload[4 * LEAF_BYTES..5 * LEAF_BYTES]);
+        tampered[0] ^= 0x01;
+        assert!(!verify_leaf(&tampered, &proof, root));
+    }
+
+    #[test]
+    fn a_proof_from_the_wrong_leaf_index_fails_verification() {
+        let buf = test_payload();
+        let payload = &buf[..9 * LEAF_BYTES];
+        let root = merkle_root(payload);
+        let proof_for_4 = prove_leaf(payload, 4).unwrap();
+        let leaf_5 = &payload[5 * LEAF_BYTES..6 * LEAF_BYTES];
+        assert!(!verify_leaf(leaf_5, &proof_for_4, root));
+    }
+
+    #[test]
+    fn out_of_range_leaf_index_refuses_to_prove() {
+        let payload = [7u8; 3 * LEAF_BYTES];
+        assert!(prove_leaf(&payload, 3).is_none());
+        assert!(prove_leaf(&payload, 999).is_none());
+    }
+
+    #[test]
+    fn single_leaf_proof_is_empty_and_the_leaf_hash_is_the_root() {
+        let payload = [9u8; LEAF_BYTES];
+        let root = merkle_root(&payload);
+        let proof = prove_leaf(&payload, 0).unwrap();
+        assert_eq!(proof.len, 0);
+        assert!(verify_leaf(&payload, &proof, root));
+    }
 
     #[test]
     fn header_round_trips_through_bytes() {
