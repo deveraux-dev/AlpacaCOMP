@@ -48,7 +48,7 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 - **1.5 µs Risk Guardrail Latency** ⚠️ `[NEEDS RECEIPT]`
 - **118 Tests Green** ⚠️ `[NEEDS FRESH SESSION RECEIPT]`
 
-> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
+> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the position-state DAG, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
 
 [**Explore the Live Proof Portal**](https://13forge-proof-portal.vercel.app)
 
