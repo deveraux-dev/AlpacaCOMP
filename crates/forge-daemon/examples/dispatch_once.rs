@@ -8,12 +8,13 @@ use forge_daemon::config;
 use forge_daemon::dispatch::{
     dispatch_spread, DispatchRefusal, CHAIN_PURITY_CEILING_PMY, CHAIN_PURITY_FLOOR_PMY, STATE_FLAT,
 };
-use forge_daemon::governor::AlpacaDaemonHealth;
+use forge_daemon::governor::{spawn_governor, AlpacaDaemonHealth};
 use forge_gate::market_purity::NormalizedIpr;
 use forge_gate::oracle_arbiter::{AuditChain, Disposition, OracleArbiter};
 use forge_gate::strategy::{build_iron_condor, ChainQuote, Side};
 use serde_json::Value;
 use std::path::Path;
+use std::sync::Arc;
 
 const QTY: u32 = 1;
 const ROOT: &str = "SPY";
@@ -201,7 +202,12 @@ fn main() {
     };
     println!("mode: {}", if send { "SEND (live paper order)" } else { "DRY (dead CLI proves gates)" });
 
-    let health = AlpacaDaemonHealth::default();
+    // Governor spawned for real here, not just a throwaway counter: this is
+    // the actual live-order binary, so StrainScore/TrinaryState now compute
+    // for every dispatch, not only in the governor_live/bifurcation_alpaca_loop
+    // demo examples.
+    let health = Arc::new(AlpacaDaemonHealth::default());
+    spawn_governor(health.clone());
     let result = dispatch_spread(
         &cli,
         &creds,
