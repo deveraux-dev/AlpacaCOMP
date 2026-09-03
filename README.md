@@ -50,7 +50,7 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 
 > **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
 
-[**Explore the Live Proof Portal**](https://13forge-proof-portal-sehrishmajeed08-2635s-projects.vercel.app)
+[**Explore the Live Proof Portal**](https://13forge-proof-portal.vercel.app)
 
 *Demo Video Placeholder: [Watch the 3-Minute 13forge Walkthrough](https://youtube.com/placeholder)*
 
