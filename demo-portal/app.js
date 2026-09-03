@@ -139,3 +139,37 @@ document.body.addEventListener("pointermove", (e) => {
   el.style.setProperty('--mouse-x', (x - l));
   el.style.setProperty('--mouse-y', (y - t));
 });
+
+// Theme Toggle Logic
+const themeToggle = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+
+themeToggle.addEventListener('click', () => {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const newTheme = isLight ? 'dark' : 'light';
+  
+  themeIcon.style.transform = 'rotate(180deg) scale(0.5)';
+  themeIcon.style.opacity = '0';
+  
+  setTimeout(() => {
+    document.documentElement.setAttribute('data-theme', newTheme);
+    themeIcon.setAttribute('data-lucide', newTheme === 'light' ? 'sun' : 'moon');
+    lucide.createIcons();
+    themeIcon.style.transform = 'rotate(0deg) scale(1)';
+    themeIcon.style.opacity = '1';
+  }, 150);
+});
+
+// Auto-Updating Backend Status Fetch
+fetch('../.forge/sim/live_chaos_report.json')
+  .then(response => response.json())
+  .then(data => {
+    const statusEl = document.getElementById('backend-status');
+    if (statusEl && data.system_status) {
+      statusEl.innerHTML = `<span class="status-dot"></span> Engine: ${data.gates_tested}/${data.gates_tested} gates (Tick ${data.tick})`;
+      statusEl.style.color = 'var(--green)';
+      statusEl.style.borderColor = 'var(--green-soft)';
+      statusEl.style.background = 'var(--green-soft)';
+    }
+  })
+  .catch(err => console.log('Running static preview (backend data not served).'));

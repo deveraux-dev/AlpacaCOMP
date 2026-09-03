@@ -132,7 +132,8 @@ a { color: inherit; }
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
 .brand { display: inline-flex; align-items: center; gap: 10px; width: fit-content; color: var(--ink); font-weight: 800; text-decoration: none; }
-.brand-mark { display: grid; width: 30px; height: 30px; place-items: center; background: var(--ink); color: var(--canvas); font-size: 12px; border-radius: 4px; }
+.brand-mark { display: grid; width: 34px; height: 34px; place-items: center; background: linear-gradient(135deg, var(--green), #008f53); color: #fff; font-size: 14px; border-radius: 10px; box-shadow: 0 6px 16px rgba(0, 210, 122, 0.3); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.brand:hover .brand-mark { transform: scale(1.08) rotate(-4deg); box-shadow: 0 8px 20px rgba(0, 210, 122, 0.4); }
 nav { display: flex; gap: 28px; }
 nav a, .header-link { color: var(--muted); font-size: 14px; font-weight: 650; text-decoration: none; transition: color 0.3s ease; }
 nav a:hover, nav a:focus-visible, .header-link:hover, .header-link:focus-visible { color: var(--ink); }
@@ -147,13 +148,14 @@ nav a:hover, nav a:focus-visible, .header-link:hover, .header-link:focus-visible
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   backdrop-filter: blur(10px);
 }
+#theme-icon { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 #theme-toggle:hover { background: var(--line); transform: scale(1.05); border-color: var(--green); }
 #theme-toggle:active { transform: scale(0.95); }
 
