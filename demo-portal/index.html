@@ -1,471 +1,59 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>13forge | Deterministic Execution Airlock</title>
+  <meta name="description" content="Replay the deterministic safety checks that stopped an unsafe options trade before it reached Alpaca.">
+  <link rel="icon" href="data:,">
+  <title>13forge | Proof Portal</title>
+  
+  <!-- Premium Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #050505;
-      --bg-gradient: radial-gradient(circle at 50% -20%, #1a221f, #050505 60%);
-      --text-main: #fcfcfc;
-      --text-muted: #88928b;
-      --border: rgba(255, 255, 255, 0.08);
-      --glass-bg: rgba(255, 255, 255, 0.02);
-      --glass-hover: rgba(255, 255, 255, 0.04);
-      
-      --accent-live: #00d27a;
-      --accent-live-bg: rgba(0, 210, 122, 0.1);
-      --accent-refused: #ff4757;
-      --accent-refused-bg: rgba(255, 71, 87, 0.1);
-      --accent-tested: #2e86de;
-      --accent-tested-bg: rgba(46, 134, 222, 0.1);
-      --accent-pending: #ffa502;
-      --accent-pending-bg: rgba(255, 165, 2, 0.1);
-      
-      --shadow-color: rgba(0, 0, 0, 0.6);
-      --glow: 0 0 40px rgba(0, 210, 122, 0.1);
-    }
-
-    [data-theme="light"] {
-      color-scheme: light;
-      --bg: #fafafa;
-      --bg-gradient: radial-gradient(circle at 50% -20%, #ffffff, #fafafa 60%);
-      --text-main: #111111;
-      --text-muted: #666666;
-      --border: rgba(0, 0, 0, 0.08);
-      --glass-bg: rgba(255, 255, 255, 0.8);
-      --glass-hover: rgba(255, 255, 255, 1);
-      
-      --accent-live: #00a862;
-      --accent-live-bg: rgba(0, 168, 98, 0.1);
-      --accent-refused: #e84142;
-      --accent-refused-bg: rgba(232, 65, 66, 0.1);
-      
-      --shadow-color: rgba(0, 0, 0, 0.04);
-      --glow: 0 10px 40px rgba(0, 0, 0, 0.05);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      color: var(--text-main);
-      background: var(--bg);
-      background-image: var(--bg-gradient);
-      background-attachment: fixed;
-      min-height: 100vh;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      transition: background 0.5s ease, color 0.5s ease;
-      overflow-x: hidden;
-    }
-
-    main {
-      width: min(1200px, calc(100% - 48px));
-      margin: 0 auto;
-      padding: 0 0 100px;
-    }
-
-    /* Scroll Reveal Magic */
-    .reveal {
-      opacity: 0;
-      transform: translateY(30px) scale(0.98);
-      filter: blur(4px);
-      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      filter: blur(0);
-    }
-
-    /* Navbar */
-    .header-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px 0;
-      animation: fadeInDown 0.6s ease-out forwards;
-    }
-
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    #theme-toggle {
-      background: var(--glass-bg);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      padding: 8px 16px;
-      border-radius: 100px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      backdrop-filter: blur(10px);
-    }
-
-    #theme-toggle:hover {
-      background: var(--glass-hover);
-      transform: scale(1.05);
-      border-color: var(--accent-live);
-    }
-
-    #theme-toggle:active {
-      transform: scale(0.95);
-    }
-
-    /* Hero Section */
-    .hero {
-      padding: 80px 0 100px;
-      text-align: center;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 6px 14px;
-      border-radius: 100px;
-      margin-bottom: 24px;
-      backdrop-filter: blur(8px);
-    }
-
-    .live { color: var(--accent-live); background: var(--accent-live-bg); border: 1px solid rgba(0, 210, 122, 0.2); }
-    .tested { color: var(--accent-tested); background: var(--accent-tested-bg); border: 1px solid rgba(46, 134, 222, 0.2); }
-    .pending { color: var(--accent-pending); background: var(--accent-pending-bg); border: 1px solid rgba(255, 165, 2, 0.2); }
-    .refused { color: var(--accent-refused); background: var(--accent-refused-bg); border: 1px solid rgba(255, 71, 87, 0.2); }
-
-    .indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: currentColor;
-      box-shadow: 0 0 10px currentColor;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.8); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
-    h1 {
-      font-size: clamp(48px, 8vw, 88px);
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      margin-bottom: 24px;
-      background: linear-gradient(180deg, var(--text-main) 0%, var(--text-muted) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .lead {
-      font-size: 20px;
-      color: var(--text-muted);
-      max-width: 650px;
-      margin: 0 auto 40px;
-    }
-
-    .hero-image-wrapper {
-      position: relative;
-      border-radius: 24px;
-      padding: 1px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-      box-shadow: var(--glow);
-    }
-
-    .hero img {
-      width: 100%;
-      border-radius: 23px;
-      display: block;
-      background: var(--bg);
-    }
-
-    /* Bento Box Grid */
-    .bento-grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 24px;
-      margin-bottom: 60px;
-    }
-
-    .bento-item {
-      background: var(--glass-bg);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 32px;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      position: relative;
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .bento-item:hover {
-      transform: translateY(-4px);
-      border-color: rgba(255,255,255,0.15);
-      box-shadow: 0 20px 40px var(--shadow-color);
-    }
-
-    [data-theme="light"] .bento-item:hover {
-      border-color: rgba(0,0,0,0.1);
-    }
-
-    .col-4 { grid-column: span 4; }
-    .col-8 { grid-column: span 8; }
-    .col-6 { grid-column: span 6; }
-    .col-12 { grid-column: span 12; }
-
-    .bento-item h2 {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-    }
-
-    .bento-item p {
-      color: var(--text-muted);
-      font-size: 15px;
-    }
-
-    /* Graph specific */
-    .graph-container {
-      margin-top: 24px;
-      width: 100%;
-      height: 180px;
-    }
-    .bento-graph {
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-    }
-    
-    .draw-line {
-      stroke-dasharray: 1000;
-      stroke-dashoffset: 1000;
-      animation: draw 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      animation-delay: 0.5s;
-    }
-    @keyframes draw {
-      to { stroke-dashoffset: 0; }
-    }
-    
-    .fade-fill {
-      opacity: 0;
-      animation: fadeInGraph 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      animation-delay: 1.5s;
-    }
-    @keyframes fadeInGraph {
-      to { opacity: 1; }
-    }
-
-    .blinking-dot {
-      opacity: 0;
-      animation: fadeInDot 0.1s forwards, pulseGlow 1.5s infinite;
-      animation-delay: 2.4s, 2.4s;
-    }
-    @keyframes fadeInDot { to { opacity: 1; } }
-    @keyframes pulseGlow {
-      0% { filter: drop-shadow(0 0 0 rgba(255, 71, 87, 0.8)); }
-      50% { filter: drop-shadow(0 0 15px rgba(255, 71, 87, 0.8)); }
-      100% { filter: drop-shadow(0 0 0 rgba(255, 71, 87, 0)); }
-    }
-
-    /* Pipeline Step Animation */
-    .pipeline-wrapper {
-      position: relative;
-      padding: 40px 0;
-      margin-top: 20px;
-    }
-    
-    .pipeline-line {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: var(--border);
-      z-index: 0;
-    }
-    
-    .pipeline-progress {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      width: 0%;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent-live), var(--accent-tested));
-      z-index: 1;
-      transition: width 1.5s ease-out;
-    }
-
-    .pipeline {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 20px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .pipeline-step {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      text-align: center;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      opacity: 0;
-      transform: translateY(20px);
-    }
-
-    .pipeline-step.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .pipeline-step:hover {
-      border-color: var(--accent-live);
-      transform: translateY(-8px);
-      box-shadow: 0 20px 40px var(--shadow-color);
-    }
-
-    .step-icon {
-      width: 48px;
-      height: 48px;
-      background: var(--glass-bg);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      transition: all 0.3s ease;
-    }
-    .pipeline-step:hover .step-icon {
-      background: var(--accent-live-bg);
-      color: var(--accent-live);
-      border-color: rgba(0, 210, 122, 0.3);
-    }
-
-    .pipeline-step h3 {
-      font-size: 16px;
-      margin-bottom: 8px;
-    }
-    .pipeline-step p {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    /* Tables */
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-top: 24px;
-    }
-    th, td {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      font-size: 15px;
-    }
-    th {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      font-weight: 700;
-    }
-    tbody tr {
-      transition: background 0.2s;
-    }
-    tbody tr:hover {
-      background: var(--glass-hover);
-    }
-    tr:last-child td { border-bottom: 0; }
-
-    code {
-      font-family: 'Fira Code', monospace;
-      font-size: 0.85em;
-      background: rgba(150, 150, 150, 0.1);
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-
-    /* Responsive */
-    @media (max-width: 960px) {
-      .bento-grid { grid-template-columns: repeat(8, 1fr); }
-      .col-4 { grid-column: span 8; }
-      .col-8 { grid-column: span 8; }
-      .pipeline { grid-template-columns: repeat(2, 1fr); }
-      .pipeline-line, .pipeline-progress { display: none; }
-    }
-    @media (max-width: 600px) {
-      .pipeline { grid-template-columns: 1fr; }
-    }
-  </style>
+  
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main>
-    <!-- Header -->
-    <header class="header-nav">
-      <div class="logo">
-        <i data-lucide="layers" width="24" height="24" style="color: var(--accent-live)"></i>
-        13forge
-      </div>
-      <button id="theme-toggle" aria-label="Toggle theme">
-        <i data-lucide="moon" width="16" height="16" id="theme-icon"></i> <span id="theme-text">Theme</span>
-      </button>
-    </header>
+  <a class="skip-link" href="#proof-replay">Skip to proof replay</a>
 
-    <!-- Hero -->
-    <section class="hero reveal">
-      <div class="tag live"><div class="indicator"></div> Live Proof Portal</div>
-      <h1>Deterministic <br> Execution Airlock</h1>
-      <p class="lead">A model can propose a trade. The system only submits it after deterministic Rust gates approve the oracle verdict, market structure, leg geometry, and max-loss ceiling.</p>
-      
-      <div class="hero-image-wrapper">
-        <img src="../patex_alpaca.png" alt="13forge Alpaca proof artifact">
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="13forge proof portal home">
+      <span class="brand-mark" aria-hidden="true">13</span>
+      <span>13forge</span>
+    </a>
+    <nav aria-label="Portal navigation">
+      <a href="#proof-replay">Replay</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#architecture">System</a>
+    </nav>
+    <div style="display: flex; gap: 16px; align-items: center; justify-self: end;">
+      <a class="header-link" href="../docs/CLAIM_PROOF_MAP.md">Proof map</a>
+      <button id="theme-toggle" aria-label="Toggle theme">
+        <i data-lucide="moon" width="16" height="16" id="theme-icon"></i> <span id="theme-text" style="display:none">Theme</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="intro reveal" aria-labelledby="intro-title">
+      <div class="eyebrow"><span class="status-dot"></span> Alpaca paper trading · recorded safety proof</div>
+      <h1 id="intro-title">Would this AI trade reach Alpaca?</h1>
+      <p>AI proposes the trade. Deterministic Rust checks decide whether execution is allowed. Replay the real oversized-condor case that the risk gate refused.</p>
+      <div class="plain-flow" aria-label="System summary">
+        <span>AI suggests</span><span aria-hidden="true">→</span>
+        <strong>Rust verifies</strong><span aria-hidden="true">→</span>
+        <span>Alpaca receives passed orders only</span>
       </div>
     </section>
-
-    <!-- Bento Box Summary -->
-    <section class="bento-grid">
-      
-      <div class="bento-item col-8 reveal">
-        <div class="tag live"><div class="indicator"></div> Margin Physics Governor</div>
-        <h2>Autonomous Strain Circuit Breaker</h2>
-        <p>A background loop tracking the physical derivatives of equity decay. If acceleration into a margin cliff breaches thresholds, the order gate locks instantly.</p>
-        
-        <!-- Interactive Trading Graph Simulation -->
+    
+    <!-- Graph Feature Added Back In! -->
+    <section class="graph-section reveal" aria-labelledby="graph-title">
+      <div class="graph-box bento-glass">
+        <div class="graph-header">
+          <div class="eyebrow"><span class="status-dot"></span> Margin Physics Governor</div>
+          <h2 id="graph-title">Autonomous Strain Circuit Breaker</h2>
+          <p>A background loop tracking the physical derivatives of equity decay. If acceleration into a margin cliff breaches thresholds, the order gate locks instantly.</p>
+        </div>
         <div class="graph-container">
           <svg viewBox="0 0 800 180" class="bento-graph" preserveAspectRatio="none">
             <defs>
@@ -479,193 +67,159 @@
                 <stop offset="100%" stop-color="#00d27a" stop-opacity="0" />
               </linearGradient>
             </defs>
-            <!-- Grid lines for authentic look -->
-            <path d="M0,45 L800,45 M0,90 L800,90 M0,135 L800,135" stroke="var(--border)" stroke-dasharray="4,4" />
-            <!-- Filled Area -->
+            <path d="M0,45 L800,45 M0,90 L800,90 M0,135 L800,135" stroke="var(--line-strong)" stroke-opacity="0.3" stroke-dasharray="4,4" />
             <path d="M0,90 C100,70 200,100 300,50 C400,0 500,80 600,40 C700,0 750,150 800,170 L800,180 L0,180 Z" fill="url(#fillGrad)" class="fade-fill" />
-            <!-- Line -->
             <path d="M0,90 C100,70 200,100 300,50 C400,0 500,80 600,40 C700,0 750,150 800,170" fill="none" stroke="url(#lineGrad)" stroke-width="4" stroke-linecap="round" class="draw-line" />
-            <!-- End Dot -->
             <circle cx="800" cy="170" r="6" fill="#ff4757" class="blinking-dot" />
           </svg>
         </div>
       </div>
-
-      <div class="bento-item col-4 reveal" style="transition-delay: 0.1s">
-        <div class="tag refused"><i data-lucide="shield-alert" width="14" height="14"></i> Main Proof</div>
-        <h2>Unsafe trade refused</h2>
-        <h1 style="font-size: 32px; margin: 16px 0; background: none; -webkit-text-fill-color: var(--accent-refused);">$2,525 &gt; $2,000</h1>
-        <p>The 29-wide condor trips the 2% max-loss veto and is clamped before Alpaca CLI is ever spawned.</p>
-      </div>
-
-      <div class="bento-item col-6 reveal" style="transition-delay: 0.2s">
-        <div class="tag live"><i data-lucide="check-circle-2" width="14" height="14"></i> MLEG Convention</div>
-        <h2>Credit price is negative</h2>
-        <p style="margin-top: 12px">The body test proves a $3.28 credit serializes as <code>"-3.28"</code>. Debit prices are positive; credits are clamped negative.</p>
-      </div>
-
-      <div class="bento-item col-6 reveal" style="transition-delay: 0.3s">
-        <div class="tag tested"><i data-lucide="file-check" width="14" height="14"></i> Receipts</div>
-        <h2>No claim without proof</h2>
-        <p style="margin-top: 12px">Every claim, UI wording, and feature maps directly to <code>docs/CLAIM_PROOF_MAP.md</code>, ledger rows, or code.</p>
-      </div>
-
     </section>
 
-    <!-- Execution Path Stepper -->
-    <section class="reveal">
-      <div class="tag live"><i data-lucide="git-merge" width="14" height="14"></i> Execution path</div>
-      <h2 style="font-size: 32px; font-weight: 800;">What controls a live order</h2>
-      
-      <div class="pipeline-wrapper">
-        <div class="pipeline-line"></div>
-        <div class="pipeline-progress" id="pipeline-progress"></div>
-        
-        <div class="pipeline">
-          <div class="pipeline-step step-anim" style="transition-delay: 0.1s">
-            <div class="step-icon"><i data-lucide="scale"></i></div>
-            <h3>1. Oracle Verdict</h3>
-            <p>Unauthorized verdicts block execution immediately.</p>
-          </div>
-          <div class="pipeline-step step-anim" style="transition-delay: 0.2s">
-            <div class="step-icon"><i data-lucide="activity"></i></div>
-            <h3>2. Purity Gate</h3>
-            <p>Chaotic market structure is refused.</p>
-          </div>
-          <div class="pipeline-step step-anim" style="transition-delay: 0.3s">
-            <div class="step-icon"><i data-lucide="triangle"></i></div>
-            <h3>3. Geometry Gate</h3>
-            <p>Malformed spread legs are blocked.</p>
-          </div>
-          <div class="pipeline-step step-anim" style="transition-delay: 0.4s">
-            <div class="step-icon"><i data-lucide="trending-down"></i></div>
-            <h3>4. 2% Ceiling</h3>
-            <p>Max-loss bound is the final risk clamp.</p>
-          </div>
-          <div class="pipeline-step step-anim" style="transition-delay: 0.5s">
-            <div class="step-icon"><i data-lucide="terminal"></i></div>
-            <h3>5. Alpaca Subprocess</h3>
-            <p>mleg JSON is sent through stdin.</p>
-          </div>
+    <section class="replay-shell bento-glass reveal" id="proof-replay" aria-labelledby="replay-title">
+      <div class="replay-heading">
+        <div>
+          <p class="section-label">Decision replay</p>
+          <h2 id="replay-title">Oversized iron condor</h2>
         </div>
+        <span class="mode-badge">Static evidence, no live order</span>
+      </div>
+
+      <div class="replay-grid">
+        <article class="proposal-panel" aria-labelledby="proposal-title">
+          <div class="panel-heading">
+            <h3 id="proposal-title">AI proposal</h3>
+            <span class="proposal-state">Ready to check</span>
+          </div>
+
+          <dl class="trade-facts">
+            <div><dt>Structure</dt><dd>Iron condor</dd></div>
+            <div><dt>Put wing width</dt><dd>29 points</dd></div>
+            <div><dt>Net credit</dt><dd>$3.75</dd></div>
+            <div><dt>Account balance</dt><dd>$100,000</dd></div>
+            <div><dt>Risk ceiling</dt><dd>2% · $2,000</dd></div>
+            <div><dt>Calculated max loss</dt><dd class="danger-text">$2,525</dd></div>
+          </dl>
+
+          <button class="primary-action" id="run-check" type="button">
+            Run safety checks
+            <span aria-hidden="true">→</span>
+          </button>
+          <p class="action-note">Replays a code-backed test case. It does not contact Alpaca.</p>
+        </article>
+
+        <article class="gate-panel" aria-labelledby="gate-title">
+          <div class="panel-heading">
+            <h3 id="gate-title">Safe order path</h3>
+            <button class="text-action" id="reset-check" type="button">Reset</button>
+          </div>
+
+          <ol class="gate-list">
+            <li class="gate" data-gate="state">
+              <span class="gate-index">01</span>
+              <span class="gate-copy"><strong>Position-state check</strong><small>Illegal order-state transitions are refused first.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate" data-gate="oracle">
+              <span class="gate-index">02</span>
+              <span class="gate-copy"><strong>AI permission check</strong><small>Only an authorized verdict may continue.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate" data-gate="market">
+              <span class="gate-index">03</span>
+              <span class="gate-copy"><strong>Market stability check</strong><small>Unstable market structure stops the order.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate" data-gate="geometry">
+              <span class="gate-index">04</span>
+              <span class="gate-copy"><strong>Trade structure check</strong><small>All option legs must form a valid spread.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate" data-gate="risk">
+              <span class="gate-index">05</span>
+              <span class="gate-copy"><strong>Maximum-loss check</strong><small>Potential loss must stay below 2%.</small></span>
+              <span class="gate-status">Waiting</span>
+            </li>
+            <li class="gate broker-gate" data-gate="broker">
+              <span class="gate-index">06</span>
+              <span class="gate-copy"><strong>Alpaca submission</strong><small>Reached only after every check passes.</small></span>
+              <span class="gate-status">Locked</span>
+            </li>
+          </ol>
+
+          <div class="decision" id="decision" role="status" aria-live="polite">
+            <span class="decision-icon" aria-hidden="true">?</span>
+            <span><strong>Awaiting replay</strong><small>Run the checks to see the code-backed verdict.</small></span>
+          </div>
+        </article>
       </div>
     </section>
 
-    <!-- Claim Status Table -->
-    <section class="bento-item col-12 reveal" style="margin-top: 60px;">
-      <div class="tag tested"><i data-lucide="list-checks" width="14" height="14"></i> Status Map</div>
-      <h2>What we can safely say</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Feature Claim</th>
-            <th>Current Status</th>
-            <th>Proof / Receipt</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Order-state DAG</td>
-            <td><span class="tag tested" style="margin:0">Tested</span></td>
-            <td><code>order_dag.rs</code> state machine tested; not live.</td>
-          </tr>
-          <tr>
-            <td>Wing cap pulls inside quoted legal strikes</td>
-            <td><span class="tag tested" style="margin:0">Tested</span></td>
-            <td><code>wing_cap_pulls_delta_selected_wing_inside_cap</code></td>
-          </tr>
-          <tr>
-            <td>API pacer & Merkle seal</td>
-            <td><span class="tag tested" style="margin:0">Support</span></td>
-            <td>Built as support modules, not claiming live path.</td>
-          </tr>
-        </tbody>
-      </table>
+    <section class="evidence-section reveal" id="evidence" aria-labelledby="evidence-title">
+      <div class="section-heading">
+        <p class="section-label">Why it was refused</p>
+        <h2 id="evidence-title">The numbers cross the hard limit</h2>
+        <p>No prediction or model opinion decides this result. A fixed, tested risk rule compares the calculated loss with the account ceiling.</p>
+      </div>
+
+      <div class="equation bento-glass" aria-label="Maximum loss calculation">
+        <div><span>Wing risk</span><strong>29 × $100</strong><small>$2,900</small></div>
+        <span class="operator" aria-hidden="true">−</span>
+        <div><span>Credit received</span><strong>$3.75 × 100</strong><small>$375</small></div>
+        <span class="operator" aria-hidden="true">=</span>
+        <div class="equation-result"><span>Maximum loss</span><strong>$2,525</strong><small>$525 over limit</small></div>
+      </div>
+
+      <div class="receipt-grid">
+        <article class="receipt-card refusal-receipt bento-glass">
+          <div class="receipt-topline"><span>Decision receipt</span><span class="tag refused">LIVE PATH</span></div>
+          <p class="receipt-verdict">REFUSED</p>
+          <p><strong>$2,525</strong> potential loss exceeds the <strong>$2,000</strong> ceiling.</p>
+          <div class="receipt-footer"><code>DispatchRefusal::MaxLossVeto</code><span>Broker process not started</span></div>
+        </article>
+
+        <article class="receipt-card bento-glass">
+          <div class="receipt-topline"><span>Price-format receipt</span><span class="tag tested">VERIFIED</span></div>
+          <p class="credit-value">-3.28</p>
+          <p>A $3.28 net credit is serialized as a negative limit price. Debit prices are positive.</p>
+          <div class="receipt-footer"><code>credit_entry_limit_price_is_negative</code><span>Test-backed</span></div>
+        </article>
+      </div>
     </section>
 
+    <section class="architecture-section reveal" id="architecture" aria-labelledby="architecture-title">
+      <div class="section-heading compact-heading">
+        <p class="section-label">System map</p>
+        <h2 id="architecture-title">Creative AI, deterministic control</h2>
+        <p>The model is useful for proposing a thesis. It never gets direct authority to place an order.</p>
+      </div>
+
+      <div class="architecture-flow">
+        <article class="bento-glass"><span class="flow-number">1</span><h3>Strategist</h3><p>Produces a constrained trade thesis.</p></article>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <article class="control-node bento-glass"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>Check position state, permission, market stability, structure, and maximum loss.</p></article>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <article class="bento-glass"><span class="flow-number">3</span><h3>Alpaca</h3><p>Receives a structured order only after every gate passes.</p></article>
+      </div>
+
+      <div class="claim-board bento-glass">
+        <div class="claim-board-heading">
+          <div><p class="section-label">Claim discipline</p><h3>What this portal can prove</h3></div>
+          <a href="../docs/CLAIM_PROOF_MAP.md">Read complete proof map →</a>
+        </div>
+        <div class="claim-row"><span class="claim-state live-state">Live</span><strong>State, risk, and structure checks control the order path</strong><span>Backed by dispatch code and refusal tests</span></div>
+        <div class="claim-row"><span class="claim-state verified-state">Verified</span><strong>Credit prices serialize as negative values</strong><span>Backed by an Alpaca convention test</span></div>
+        <div class="claim-row"><span class="claim-state tested-state">Tested</span><strong>Strategy uses quoted strikes and pulls wings inside the cap</strong><span>Backed by strategy tests</span></div>
+        <div class="claim-row"><span class="claim-state support-state">Support</span><strong>Merkle seal, Fredholm residue, API pacer</strong><span>Built components, not presented as live gates</span></div>
+      </div>
+    </section>
   </main>
 
-  <script>
-    // Initialize Icons
-    lucide.createIcons();
+  <footer>
+    <div><strong>13forge</strong><span>Proof-first autonomous options execution</span></div>
+    <p>This static portal shows recorded, receipt-backed behavior. It contains no credentials, live balances, or invented performance metrics.</p>
+  </footer>
 
-    // Intersection Observer for Magical Scroll Reveal
-    const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          
-          // Trigger pipeline progress bar when pipeline is visible
-          if (entry.target.querySelector('.pipeline')) {
-            setTimeout(() => {
-              document.getElementById('pipeline-progress').style.width = '100%';
-              document.querySelectorAll('.step-anim').forEach(step => step.classList.add('visible'));
-            }, 300);
-          }
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-    // Web Audio API: High-end subtle click sound
-    function playPremiumClick() {
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.type = 'sine';
-        // A soft, premium 'thud' frequency
-        osc.frequency.setValueAtTime(400, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.05);
-        
-        gain.gain.setValueAtTime(0.05, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start();
-        osc.stop(ctx.currentTime + 0.05);
-      } catch (e) {
-        // Fallback or ignore if browser blocks audio context on load
-      }
-    }
-
-    // Theme Toggle Logic
-    const toggleBtn = document.getElementById('theme-toggle');
-    const body = document.body;
-    const themeIcon = document.getElementById('theme-icon');
-    const themeText = document.getElementById('theme-text');
-    
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-      body.setAttribute('data-theme', 'light');
-      themeIcon.setAttribute('data-lucide', 'sun');
-      themeText.innerText = 'Light Mode';
-    }
-
-    toggleBtn.addEventListener('click', () => {
-      playPremiumClick(); // Play the satisfying click sound
-      
-      if (body.getAttribute('data-theme') === 'light') {
-        body.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'dark');
-        themeIcon.setAttribute('data-lucide', 'moon');
-        themeText.innerText = 'Dark Mode';
-      } else {
-        body.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-        themeIcon.setAttribute('data-lucide', 'sun');
-        themeText.innerText = 'Light Mode';
-      }
-      lucide.createIcons();
-    });
-
-  </script>
+  <script src="./app.js"></script>
 </body>
 </html>
