@@ -8,6 +8,7 @@ use forge_daemon::config;
 use forge_daemon::dispatch::{
     dispatch_spread, DispatchRefusal, CHAIN_PURITY_CEILING_PMY, CHAIN_PURITY_FLOOR_PMY, STATE_FLAT,
 };
+use forge_daemon::governor::AlpacaDaemonHealth;
 use forge_gate::market_purity::NormalizedIpr;
 use forge_gate::oracle_arbiter::{AuditChain, Disposition, OracleArbiter};
 use forge_gate::strategy::{build_iron_condor, ChainQuote, Side};
@@ -200,9 +201,11 @@ fn main() {
     };
     println!("mode: {}", if send { "SEND (live paper order)" } else { "DRY (dead CLI proves gates)" });
 
+    let health = AlpacaDaemonHealth::default();
     let result = dispatch_spread(
         &cli,
         &creds,
+        &health,
         STATE_FLAT,
         verdict,
         &ipr,
@@ -214,6 +217,7 @@ fn main() {
         QTY,
         limit_price,
     );
+    println!("governor risk_gate_faults this run: {}", health.risk_gate_faults.load(std::sync::atomic::Ordering::Relaxed));
 
     match result {
         Ok(resp) => println!("ORDER ACCEPTED:\n{resp}"),
