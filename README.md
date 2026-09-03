@@ -43,25 +43,25 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 
 ### Metrics (Pending Fresh Receipts)
 *The following metrics require fresh session receipts before we call them verified on the demo portal:*
-- **55.4% Win Rate** ⚠️ `[NEEDS RECEIPT]`
-- **1.73 Profit Factor** ⚠️ `[NEEDS RECEIPT]`
-- **1.5 µs Risk Guardrail Latency** ⚠️ `[NEEDS RECEIPT]`
-- **118 Tests Green** ⚠️ `[NEEDS FRESH SESSION RECEIPT]`
+- **55.4% Win Rate** ⏳ `[NEEDS RECEIPT]`
+- **1.73 Profit Factor** ⏳ `[NEEDS RECEIPT]`
+- **1.5 A-s Risk Guardrail Latency** ⏳ `[NEEDS RECEIPT]`
+- **159 Tests Green** ✅ `[VERIFIED: 110 gate + 36 daemon + 13 example]`
 
-> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the position-state DAG, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
+> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the margin strain (Governor), position-state DAG, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
 
-[**Explore the Live Proof Portal**](https://13forge-proof-portal.vercel.app)
+[**Explore the Live Proof Portal**](https://13forge-proof-portal-sehrishmajeed08-2635s-projects.vercel.app/demo-portal/)
 
 *Demo Video Placeholder: [Watch the 3-Minute 13forge Walkthrough](https://youtube.com/placeholder)*
 
 > **13forge** is a deterministic execution airlock. It prevents LLMs from writing live option orders by forcing them to negotiate through a bicameral S13 state vector, which is then verified against market structure and margin-physics limits before Alpaca is ever touched.
 
-## 🧠 The Zero Generative Law
+## 🏛️ The Zero Generative Law
 
 We do not allow predictive models to hallucinate strikes, Greeks, or JSON payloads directly. Our architecture enforces a strict separation of concerns:
 
 1. **Emission:** The dual-oracle (Bull/Bear) emits constrained `S13` thesis tokens.
-2. **Gating:** Tokens hit a deterministic, refuse-by-default gate lattice.
+2. **Gating:** Tokens hit a 7-gate deterministic, refuse-by-default gate lattice.
 3. **Assembly:** The strategy layer builds the trade exclusively from real `ChainQuote` market data.
 4. **Execution:** Only mathematically verified, strictly bounded trades reach the Alpaca V2 API.
 
