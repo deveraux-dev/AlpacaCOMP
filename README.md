@@ -17,6 +17,8 @@ The model can propose a trade, but it cannot submit one directly. A fixed sequen
 
 ## Guided Proof Portal
 
+**Live demo:** [13forge Proof Portal](https://13forge-proof-portal-sehrishmajeed08-2635s-projects.vercel.app)
+
 Open [`demo-portal/index.html`](demo-portal/index.html) to replay the strongest code-backed example: a proposed iron condor with `$2,525` maximum loss is refused because it exceeds the `$2,000` ceiling on a `$100,000` paper account.
 
 The portal is a static evidence replay. It contains no credentials, does not place orders, and does not present invented live metrics.
@@ -102,7 +104,8 @@ cargo run --example live_smoke -p forge-daemon
 ## ✅ Hackathon Submission Checklist
 
 - [x] **Paper Account**: Confirm the Alpaca paper account is active; keep credentials and identifiers out of public frontend assets.
-- [ ] **Technical Repository**: Publish public GitHub repository and demo URL.
+- [x] **Demo URL**: Publish the static proof portal on Vercel.
+- [ ] **Technical Repository**: Publish the final GitHub repository.
 - [ ] **Write-Up**: Finalize the one-page explanation of the governed order path and its receipts.
 - [ ] **Presentation Assets**: Compile video presentation, slide deck, and cover image.
 - [ ] **Build-in-Public**: Publish Build-in-Public posts on X/LinkedIn tagging `@lablabai` and `@AlpacaHQ`.
