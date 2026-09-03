@@ -1,93 +1,75 @@
-# Video and Demo Plan
+# 13forge Demo Video Plan
 
-Goal: make judges understand the project in under 90 seconds.
+Goal: make the problem, working behavior, and technical difference clear in 90 seconds.
 
 ## Core Message
 
-AlpacaCOMP is an AI trading agent where the AI is not trusted with the final order. It can produce a market thesis, but deterministic Rust gates decide whether the trade is safe enough to reach Alpaca paper trading.
+AI proposes. Deterministic Rust gates decide. Alpaca receives an order only after every implemented safety check passes.
 
-## Suggested 90-Second Structure
+The video uses the static proof portal as its main visual. It does not need live credentials or a live order.
 
-### 0-10 seconds: Hook
+## 90-Second Storyboard
 
-"Most AI trading demos focus on what the model wants to buy. AlpacaCOMP focuses on what the model is not allowed to do."
+### 0-12 seconds: The Problem
 
-Show: the architecture blueprint or a simple flow:
+Narration:
 
-```text
-AI thesis -> Rust gate -> Alpaca paper order/refusal -> receipt
-```
+> An AI trading model can produce a confident idea and still create an invalid or over-risked order. 13forge separates creative trading ideas from execution authority.
 
-### 10-30 seconds: Problem
+Show the portal headline and the three-step summary: AI suggests, Rust verifies, Alpaca receives passed orders only.
 
-Explain that AI agents can hallucinate, over-risk, or send invalid orders. In trading, that is not acceptable. The system needs a hard safety boundary between model output and broker execution.
+### 12-30 seconds: The Governed Path
 
-### 30-55 seconds: Solution
+Narration:
 
-Show the gate stack:
+> Before Alpaca is contacted, the order must pass position-state, model-verdict, market-stability, trade-structure, and maximum-loss checks.
 
-```text
-Oracle verdict
-Market purity
-Leg geometry
-2% max-loss veto
-Alpaca multi-leg order
-Receipt
-```
+Show the six-row safe order path. Make clear that Alpaca submission is the destination, not another safety gate.
 
-Say: "Every order clears these gates in-process before the Alpaca subprocess exists."
+### 30-65 seconds: The Proof
 
-### 55-75 seconds: Demo
+Click **Run safety checks**.
 
-Use the strongest proof:
+Narration:
 
-```text
-Simulated Condor:
-29-wide put wing
-$3.75 credit
-$100,000 paper account
-Max loss: $2,525
-Allowed max loss: $2,000
-Result: refused before dispatch
-```
+> This recorded test case proposes a 29-point iron-condor wing for a 3 dollar and 75 cent credit. Its maximum loss is 2,525 dollars. The account ceiling is 2,000 dollars, so the final risk check refuses it. Alpaca is never reached.
 
-This is better than only showing a successful order because it proves the safety layer has teeth.
+Pause briefly on **REFUSED** and **NOT REACHED**.
 
-### 75-90 seconds: Close
+### 65-78 seconds: API Correctness
 
-"The agent is autonomous, but not unconstrained. The model can suggest. The deterministic gate decides. Alpaca only sees trades that pass."
+Scroll to the price-format receipt.
 
-End with:
+Narration:
 
-- paper account
-- test count
-- proof ledger / sealed receipt
-- GitHub repo link
+> The order builder also pins Alpaca's multi-leg convention: credits serialize as negative prices and debits as positive prices.
 
-## Shots to Capture
+### 78-90 seconds: Close
 
-1. Repository overview with `README.md`.
-2. Architecture blueprint: `docs/patex_alpaca.png`.
-3. Test run: `cargo test --workspace`.
-4. Dry-run simulation: `cargo run -p forge-daemon --example sim_today`.
-5. Proof seal: `cargo run -p forge-daemon --example seal_now`.
-6. Optional read-only Alpaca account/clock smoke test if credentials are available.
+Scroll to the system map and claim board.
 
-## What Not To Over-Explain
+Narration:
 
-- Fredholm math derivation
-- S13 internals
-- Every regime class
-- Long benchmark tables
+> This is autonomous trading with a hard boundary: the model can suggest, but code decides whether capital may move. Every public claim maps to code, a test, or a receipt.
 
-Mention those only as engineering depth. The main story should stay simple: untrusted AI, deterministic gate, safe Alpaca execution, receipts.
+End on the project name, public repository, and deployed portal URL.
 
-## Open Questions For Sean
+## Recording Checklist
 
-Ask these before changing trading code:
+- Record at 1920x1080 with browser zoom at 100 percent.
+- Hide bookmarks, notifications, account identifiers, credentials, and unrelated tabs.
+- Use one continuous portal walkthrough; avoid terminal switching unless Sean supplies a clean fresh receipt.
+- Confirm the replay ends with **Order refused before Alpaca** and **Not reached**.
+- Keep unreceipted win-rate, profit-factor, latency, and test-count figures off screen.
+- Export one clean 1080p MP4 and verify audio before submission.
 
-1. Is `AlpacaCOMP` the final hackathon submission repo, and should this README be the public-facing one?
-2. Should we add strategy-side wing-width capping before the first live submit?
-3. Has the Alpaca `mleg` credit-spread `limit_price` sign been verified against the docs or a paper order?
-4. Should the video lead with a refused trade, a successful paper order, or both?
-5. What exact account metrics should be shown in the final submission: balance, P&L, win rate, profit factor, or all of them?
+## Optional Evidence Inserts
+
+Use only if Sean provides a fresh capture from the current commit:
+
+- full Rust test result
+- read-only Alpaca paper-account status
+- paper-order receipt
+- benchmark output with command and machine context
+
+The portal replay remains the reliable fallback if any live evidence is unavailable.

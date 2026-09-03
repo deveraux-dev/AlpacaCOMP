@@ -37,16 +37,29 @@ button, a { font: inherit; }
 a { color: inherit; }
 
 .skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  z-index: 20;
+  background: var(--ink);
+  color: white;
+}
+.skip-link:focus {
   position: fixed;
   top: 8px;
   left: 8px;
-  z-index: 20;
+  width: auto;
+  height: auto;
   padding: 8px 12px;
-  background: var(--ink);
-  color: white;
-  transform: translateY(-160%);
+  margin: 0;
+  overflow: visible;
+  clip: auto;
 }
-.skip-link:focus { transform: translateY(0); }
 
 .site-header {
   position: sticky;

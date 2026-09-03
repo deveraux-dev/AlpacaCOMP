@@ -1,47 +1,71 @@
-# 13forge: A Bicameral Trading Agent That Never Trusts Its Own Mind
+# 13forge Presentation Outline
 
----
+Five slides for a clear three-minute pitch.
 
 ## Slide 1: The Problem
-**LLMs Hallucinate Financial Risk**
-- **The Core Issue:** Every LLM trading agent has the same failure mode: the model that dreams up the trade also writes the order.
-- **The Danger:** One hallucinated strike, one confidently mislabeled assumption (like flipping credit vs. debit signs), and generated text becomes a live, disastrous position.
-- **The Reality:** We caught our own AI making a sign error that would have flipped a $328 credit into a $328 debit. 
-- **The Question:** How do we let AI discover opportunities without trusting it to write the order?
 
----
+### AI trading needs an execution boundary
+
+- A model can produce a useful trade thesis and still propose invalid legs or excessive risk.
+- Sending model output directly to a broker turns a reasoning mistake into a financial action.
+- The question: how can an agent remain autonomous without giving the model unchecked authority?
+
+Visual: one line from AI proposal to a blocked broker order.
 
 ## Slide 2: The Solution
-**The Zero-Generative Law & Bicameral Architecture**
-- **Zero-Generative Law:** The LLM is banned from writing orders. It can only emit a 13-lane balanced-ternary vector (−1/0/+1) representing a market thesis.
-- **Bicameral System:** Two independent models (Strategist and Risk Sentinel) generate competing theses.
-- **Deterministic Arbiter:** A hard-coded Rust oracle compares the vectors. Disagreement refuses the trade instantly.
 
----
+### AI proposes. Deterministic Rust gates decide.
 
-## Slide 3: Architecture
-**The 5-Step Execution Airlock**
-Orders pass through 5 deterministic, math-only gates before the Alpaca CLI is ever spawned. A refused order costs zero syscalls.
-1. **Oracle Verdict Veto:** Do the two models agree?
-2. **Purity / Chaos Gate:** Is the market structure safe (bid/ask spread valid)?
-3. **Leg Geometry:** Are the spread wings valid and quoted?
-4. **2% Max-Loss Veto:** Is the maximum potential loss mathematically under 2% of equity?
-5. **CLI Subprocess:** Only then is the order dispatched to Alpaca.
+- The strategist emits a constrained thesis.
+- Market quotes, not model text, supply the option strikes.
+- A fixed Rust path can refuse the order before Alpaca is contacted.
 
----
+Visual: Strategist -> Rust safety gates -> Alpaca paper trading.
 
-## Slide 4: Proof & Receipts
-**The Engine Working In Reality**
-- **Live Proof:** We tested the system by feeding it an oversized, unsafe Iron Condor (max loss $2,525 on a $100k account).
-- **Result:** The 2% Max-Loss Veto killed the trade *before* it reached Alpaca.
-- **Sign Safety:** The engine forces correct limit price signs (negative for credit spreads), catching the very hallucination that sparked this project.
-- *Everything is logged in an immutable Merkle proof ledger.*
+## Slide 3: The Live Order Path
 
----
+### Five checks before one broker submission
 
-## Slide 5: The Value
-**Safer Autonomous Options Trading**
-- **Business Value:** Brokerages and retail traders can finally trust AI agents with live capital, because the risk layer is mathematically guaranteed.
-- **Originality:** We didn't build an LLM wrapper. We built a `no_std` Rust gate lattice that treats the LLM as an untrusted signal generator.
-- **Next Steps:** Open-source the gate lattice, wire in the position-state DAG, and deploy on bare metal.
-- **Receipts:** Zero orders, ever, asserted into existence without mathematical proof.
+1. Position-state check
+2. Model-verdict check
+3. Market-stability check
+4. Trade-structure check
+5. Maximum-loss check
+
+Only a passing order reaches the Alpaca multi-leg submission step.
+
+Visual: use the portal's six-row safe order path.
+
+## Slide 4: The Proof
+
+### The strongest result is a refusal
+
+- Proposed trade: 29-point iron-condor wing with a $3.75 credit.
+- Calculated maximum loss: $2,525.
+- Allowed ceiling: 2 percent of a $100,000 paper account, or $2,000.
+- Result: refused before Alpaca submission.
+- API receipt: a $3.28 credit serializes as `-3.28`.
+
+Visual: `$2,525 > $2,000`, followed by **REFUSED** and **ALPACA NOT REACHED**.
+
+## Slide 5: Why It Matters
+
+### Autonomous, not unconstrained
+
+- **Application of technology:** AI generates the thesis; deterministic code controls execution.
+- **Business value:** a reusable safety boundary for autonomous brokerage workflows.
+- **Originality:** a `no_std`, unsafe-denied Rust gate core instead of a chatbot directly writing orders.
+- **Transparency:** public claims map to code, tests, or receipts.
+
+Close:
+
+> The model can suggest. The gate decides. Alpaca only sees orders that pass.
+
+Show the repository and deployed proof-portal URL.
+
+## Presenter Notes
+
+- Say **paper trading**, not live customer capital.
+- Call Alpaca submission the destination, not a sixth safety gate.
+- Do not show performance, latency, or test-count figures without a fresh receipt.
+- Keep Fredholm, Merkle, and API pacing as optional engineering depth, not the main demo claim.

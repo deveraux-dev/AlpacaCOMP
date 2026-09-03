@@ -11,9 +11,15 @@
 
 ## Overview
 
-13forge is an autonomous options-trading agent built entirely in Rust. The gate lattice strictly adheres to `#[no_std]` constraints, achieving **zero heap allocations** and **lock-free concurrency** on the decision path.
+13forge is an autonomous options-trading agent built in Rust for Alpaca paper trading. Its core gate crate is `no_std` and denies unsafe code; the surrounding daemon handles market data and broker communication.
 
-Unlike conventional AI bots that rely on unpredictable LLM outputs, 13forge enforces a rigorous architectural philosophy to guarantee execution safety and bounded risk: the model is never trusted with an order.
+The model can propose a trade, but it cannot submit one directly. A fixed sequence of Rust checks validates the position state, model verdict, market conditions, spread structure, and maximum loss before Alpaca is contacted.
+
+## Guided Proof Portal
+
+Open [`demo-portal/index.html`](demo-portal/index.html) to replay the strongest code-backed example: a proposed iron condor with `$2,525` maximum loss is refused because it exceeds the `$2,000` ceiling on a `$100,000` paper account.
+
+The portal is a static evidence replay. It contains no credentials, does not place orders, and does not present invented live metrics.
 
 ## 📊 The Claim-Proof Ledger
 
@@ -39,16 +45,13 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 | Claim | Status | Proof Source | Judge Angle |
 |-------|--------|--------------|-------------|
 | **`forge-gate` is `no_std`.** | **LIVE** | `#![no_std]` in `crates/forge-gate/src/lib.rs` | **Brandon** (Bare-metal constraints) |
-| **Merkle seal / evidence chain.** | **PROVEN** | `.forge/proof-ledger.tsv` | **Chiranjeev** (Unassailable receipts) |
+| **Merkle seal / evidence chain tooling.** | **PROVEN SUPPORT** | `.forge/proof-ledger.tsv`, `merkle_seal.rs` | **Chiranjeev** (Tamper-evident evidence support) |
 
-### Metrics (Pending Fresh Receipts)
-*The following metrics require fresh session receipts before we call them verified on the demo portal:*
-- **55.4% Win Rate** ⚠️ `[NEEDS RECEIPT]`
-- **1.73 Profit Factor** ⚠️ `[NEEDS RECEIPT]`
-- **1.5 µs Risk Guardrail Latency** ⚠️ `[NEEDS RECEIPT]`
-- **118 Tests Green** ⚠️ `[NEEDS FRESH SESSION RECEIPT]`
+### Metrics Policy
 
-> **Demo Spine:** A model can suggest a trade, but 13forge only submits it after deterministic gates approve the state transition, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
+Performance, latency, and test-count figures belong in judge-facing material only when a fresh, reproducible receipt is attached. The proof portal intentionally omits unreceipted metrics.
+
+> **Demo Spine:** AI proposes. Deterministic Rust gates decide. The clearest proof is an unsafe condor refused before Alpaca is contacted.
 
 ## 🧠 The Zero Generative Law
 
@@ -57,7 +60,7 @@ We do not allow predictive models to hallucinate strikes, Greeks, or JSON payloa
 1. **Emission:** The dual-oracle (Bull/Bear) emits constrained `S13` thesis tokens.
 2. **Gating:** Tokens hit a deterministic, refuse-by-default gate lattice.
 3. **Assembly:** The strategy layer builds the trade exclusively from real `ChainQuote` market data.
-4. **Execution:** Only mathematically verified, strictly bounded trades reach the Alpaca V2 API.
+4. **Execution:** Only orders that pass every implemented gate reach the Alpaca V2 API.
 
 ```mermaid
 graph TD
@@ -86,7 +89,7 @@ Ensure you have Rust installed and your Alpaca paper credentials set in your env
 export APCA_API_KEY_ID="your_key_id"
 export APCA_API_SECRET_KEY="your_secret_key"
 
-# 2. Run the full gate-lattice test suite (118 tests)
+# 2. Run the full gate-lattice test suite
 cargo test -p forge-gate -p forge-daemon
 
 # 3. Dry-run today's strategy selection against the live SPY chain (no orders placed)
@@ -98,10 +101,9 @@ cargo run --example live_smoke -p forge-daemon
 
 ## ✅ Hackathon Submission Checklist
 
-- [x] **Account Verification**: Confirm fresh Alpaca paper account balance is exactly `$100,000`. (Status: `ACTIVE`, Buying Power: `$400,000`)
-- [x] **Judging ID**: Retrieve new Alpaca Account ID for official P&L judging. (Account ID: `PA3FMNQT9WDW`)
+- [x] **Paper Account**: Confirm the Alpaca paper account is active; keep credentials and identifiers out of public frontend assets.
 - [ ] **Technical Repository**: Publish public GitHub repository and demo URL.
-- [ ] **Write-Up**: Finalize 1-page write-up detailing `D=T+F+R` logic, 1.5 µs risk gates, and Alpaca CLI infrastructure.
+- [ ] **Write-Up**: Finalize the one-page explanation of the governed order path and its receipts.
 - [ ] **Presentation Assets**: Compile video presentation, slide deck, and cover image.
 - [ ] **Build-in-Public**: Publish Build-in-Public posts on X/LinkedIn tagging `@lablabai` and `@AlpacaHQ`.
 

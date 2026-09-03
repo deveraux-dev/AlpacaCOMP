@@ -27,7 +27,7 @@ async function runReplay() {
   runButton.disabled = true;
   runButton.firstChild.textContent = 'Checking ';
 
-  for (const gate of gates.slice(0, 3)) {
+  for (const gate of gates.slice(0, 4)) {
     gate.classList.add('is-checking');
     gate.querySelector('.gate-status').textContent = 'Checking';
     await delay(320);
@@ -36,7 +36,7 @@ async function runReplay() {
     gate.querySelector('.gate-status').textContent = 'Passed';
   }
 
-  const riskGate = gates[3];
+  const riskGate = gates[4];
   riskGate.classList.add('is-checking');
   riskGate.querySelector('.gate-status').textContent = 'Calculating';
   await delay(520);
@@ -44,8 +44,8 @@ async function runReplay() {
   riskGate.classList.add('is-refused');
   riskGate.querySelector('.gate-status').textContent = 'Refused';
 
-  gates[4].classList.add('is-locked');
-  gates[4].querySelector('.gate-status').textContent = 'Not reached';
+  gates[5].classList.add('is-locked');
+  gates[5].querySelector('.gate-status').textContent = 'Not reached';
   setDecision('is-refused', 'Order refused before Alpaca', '$2,525 maximum loss exceeds the $2,000 hard limit.');
   runButton.firstChild.textContent = 'Replay complete ';
   runButton.disabled = false;

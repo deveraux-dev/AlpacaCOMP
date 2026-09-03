@@ -1,25 +1,35 @@
-# Sehrish — Operational Brief
+# Collaborator Working Agreement
 
-Working agreements for this repo, both directions. (Urdu version: ask your Claude.)
+This file defines ownership and verification rules for collaborator sessions.
 
-## Lanes
+## Ownership
 
-- **Sehrish**: front end, demo UI, README, docs/, presentation assets. Full ownership, no review gate from our side.
-- **Sean's sessions**: `crates/` (trading engine), live orders, ledger.
-- `crates/` is single-writer to avoid another collision like last night — engine change requests go through Sean's session, credited like the butterfly cap (your 20a1ea8, now in `strategy.rs`).
-- `.claude/workflows/777-cascade-uiux.js` is staged for the demo UI: "run the 777-cascade-uiux workflow" in a repo session outputs a build spec with every screen element tied to its data source.
+- Sehrish owns the frontend, demo UI, README, public docs, and video/slide assets.
+- Sean owns `crates/`, live orders, credentials, and engine receipts.
+- Collaborator and AI sessions may inspect `crates/` for evidence but must not edit it.
+- Engine suggestions go to Sean for review and implementation.
 
-## Last night, for the record
+## Evidence Rule
 
-Three commits landed under your account at 10:32 (your README plus two engine changes — likely your assistant acting on CLAUDE.md's pending-work list). The sign-convention change asserted "VERIFIED" without a source and had it backwards (Alpaca mleg: credit = negative `limit_price`; three cited sources in `dispatch.rs` and the CLAUDE.md ledger). Reversed in `7776b8c`. README adopted, butterfly cap ported and credited. The repo CLAUDE.md now blocks assistant sessions from resolving pending-list items — that hole was ours, not yours.
+- Use **verified** only when the same session can cite the exact URL, code location, test, API response, or ledger receipt.
+- Without a receipt, write **unverified**, **needs receipt**, or remove the claim from judge-facing material.
+- Keep live account identifiers, credentials, and private operational details out of frontend assets.
 
-## Repo law (applies to every session, Sean's included)
+## Workflow
 
-- "VERIFIED" only ever appears next to a cited receipt (URL quoted, or file:line read that session). Otherwise write "unverified."
-- Pull before working; push small and often — the schedule assumes either side can drop offline for hours without costing the other anything.
-- Nothing on the critical path waits on anyone's clock. Async by default.
+1. Pull the latest changes before starting.
+2. Keep changes inside the collaborator-owned files.
+3. Commit and push small, reviewable updates.
+4. Open a pull request and wait for Sean's approval before merging.
+5. Prefer a reliable, understandable demo over new last-minute features.
 
-## Clocks
+## Current Demo Focus
 
-- Deadline: **Thu 8:00 PM PKT** (Sep 4, 9:00 AM MDT).
-- Market hours: 6:30 PM – 1:00 AM PKT. Live trading runs from Sean's side; watching is optional.
+The strongest proof is the recorded oversized-condor refusal:
+
+```text
+$2,525 maximum loss > $2,000 account ceiling
+Result: refused before Alpaca submission
+```
+
+The deadline is Thursday, September 4 at 8:00 PM Pakistan time.

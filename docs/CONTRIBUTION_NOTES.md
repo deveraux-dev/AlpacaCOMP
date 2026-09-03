@@ -1,47 +1,35 @@
-# Contribution Notes
+# Frontend and Submission Contribution Notes
 
-This repo is already technically strong, so the safest first contribution is presentation and verification support.
+## Current Responsibility
 
-## Best First Contribution
+- guided proof portal
+- README and claim-safe public documentation
+- deployed static demo URL
+- 90-second demo recording
+- five-slide presentation and three-minute pitch
 
-Polish the judge-facing story:
+`crates/` is read-only from collaborator sessions.
 
-- Add a clear README.
-- Add a 90-second demo/video plan.
-- Keep the architecture simple for non-Rust judges.
-- Show exactly what is implemented vs what still needs verification.
+## Completed on the Engine Side
 
-## Technical Work To Suggest, Not Touch Blindly
+The current code contains receipts for these previously open items:
 
-Ask Sean before changing these:
+- Alpaca multi-leg credit prices serialize as negative values.
+- Condor and butterfly builders apply a wing-width cap.
+- The position-state DAG is checked first in `dispatch_spread`.
 
-- Strategy-side wing-width cap in `strategy.rs`.
-- Alpaca multi-leg `limit_price` sign verification.
-- Direct wiring of `order_dag.rs` into `dispatch.rs`.
-- Live daemon/governor wiring.
+These are no longer collaborator implementation tasks.
 
-## Suggested Message To Sean
+## Remaining Collaborator Critical Path
+
+1. Keep the deployed root pointed at `demo-portal/`.
+2. Check every visible claim against `docs/CLAIM_PROOF_MAP.md`.
+3. Publish a static preview without keys or live broker calls.
+4. Record the refusal replay and add the final URL to the README.
+5. Finish the slide PDF and presentation video.
+
+## Review Message
 
 ```text
-I cloned AlpacaCOMP locally and started with the presentation layer because the engine is strong but the repo needs a judge-facing story. I added a README draft and a video/demo plan that separate implemented pieces from unverified/completion items.
-
-Before I touch trading logic, can you confirm two things?
-1. Is AlpacaCOMP the final hackathon submission repo?
-2. Do you want me to make the next technical PR around strategy-side wing-width capping, or should I stay focused on README/video/demo polish first?
+I synced the proof portal with the latest live order path, including the position-state check. I also removed stale and unreceipted claims from the public docs. Please review the portal flow and claim wording; the remaining blocker is publishing the static preview URL, then I can record the demo and finish the slides.
 ```
-
-## Repo Relationship
-
-The public Nistam repo is useful as background and style reference. It is not the Alpaca hackathon submission.
-
-Use Nistam for:
-
-- understanding Sean's architecture language
-- borrowing README/demo structure
-- seeing how he separates measured vs stubbed claims
-
-Use AlpacaCOMP for:
-
-- all current hackathon contribution work
-- README, video, demo, and final submission assets
-- trading-agent verification and small fixes
