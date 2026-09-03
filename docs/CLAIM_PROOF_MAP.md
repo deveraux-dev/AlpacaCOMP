@@ -9,6 +9,7 @@ Doctrine: no claim is shown as verified unless it has a receipt. When the receip
 
 | Claim | Status | Proof source | Judge angle | Safe wording |
 |---|---:|---|---|---|
+| Governor VENT blocks dispatch before every other gate. | LIVE | `DispatchRefusal::GovernorVent`; test `governor_vent_refuses_before_any_other_gate` | Tony, Pawel | The margin-strain governor is the first live dispatch gate; VENT refuses before position-state or broker work. |
 | Orders pass through one guarded dispatch door before Alpaca. | LIVE | `crates/forge-daemon/src/dispatch.rs::dispatch_spread` | Brandon, Chiranjeev | Order submission is centralized through one audited dispatch function before the CLI/API call. |
 | Oracle verdict can veto an order. | LIVE | `dispatch_spread` returns `DispatchRefusal::VerdictVeto` for non-authorized verdicts | Pawel, Tony | The strategist is not trusted directly; an arbiter verdict can block execution. |
 | Market purity/chaos can veto an order. | LIVE | `dispatch_spread` checks `purity.is_chaotic()` and returns `DispatchRefusal::ChaoticBook` | Tony, Pawel | Diffuse or chaotic market structure can stop execution before order submission. |
@@ -31,9 +32,9 @@ Doctrine: no claim is shown as verified unless it has a receipt. When the receip
 
 | Claim | Status | Proof source | Judge angle | Safe wording |
 |---|---:|---|---|---|
-| Position-state DAG | PROVEN SUPPORT | `order_dag.rs` | Tony, Pawel | Built and tested state machine; do not claim it gates live orders unless wired. |
+| Position-state DAG | LIVE | `LIVE_ORDER_DAG.validate_path` in `dispatch_spread` | Tony, Pawel | The live dispatch path refuses unwitnessed position-state transitions before broker work. |
 | `forge-gate` is `no_std` and denies unsafe code. | LIVE IN CORE CRATE | `crates/forge-gate/src/lib.rs` has `#![no_std]` and `#![deny(unsafe_code)]` | Brandon | The gate core is a `no_std`, unsafe-denied Rust crate. |
-| Margin Strain Governor | PROVEN SUPPORT | `StrainScore`/`LiquidationDetector` live-wired to real account equity in a 1s loop (`governor.rs`, `bifurcation.rs`); CLAUDE.md says not live dispatch | Tony | An autonomous monitor tracks the velocity and acceleration of equity decay and computes a circuit-breaker state from real account data; do not claim it locks the order gate unless wired. |
+| Margin Strain Governor | LIVE DISPATCH GATE | `dispatch_spread` checks `health.trinary_state() == TrinaryState::Vent` before `LIVE_ORDER_DAG.validate_path` | Tony | The governor computes a circuit-breaker state from strain axes; VENT is now wired as the first dispatch refusal gate. |
 | Merkle seal / evidence chain exists. | PROVEN SUPPORT | `.forge/proof-ledger.tsv`; `crates/forge-gate/src/merkle_seal.rs`; CLAUDE.md says not live dispatch | Chiranjeev | The project includes an append-only proof ledger and seal tooling; do not claim it gates live dispatch unless wired. |
 | Fredholm/residue logic exists. | PROVEN SUPPORT | `crates/forge-gate/src/residue.rs`; `.forge/proof-ledger.tsv` | Pawel | Fredholm/residue logic is a tested support/research component; do not claim it blocks live orders unless wired. |
 | API pacer exists. | PROVEN SUPPORT | `crates/forge-gate/src/api_pacer.rs`; CLAUDE.md says not live dispatch | Brandon | API pacing is built as support logic; do not claim it controls the live order path unless wired. |
@@ -45,7 +46,7 @@ Doctrine: no claim is shown as verified unless it has a receipt. When the receip
 | 55.4 percent win rate | NEEDS RECEIPT | Ledger/backtest/paper-account export showing calculation method and sample period. |
 | 1.73 profit factor | NEEDS RECEIPT | Calculation source from closed trades or backtest run. |
 | 1.5 microsecond risk guardrail latency | NEEDS RECEIPT | Benchmark output, command used, machine/context, and latest commit. |
-| 118 tests green | NEEDS FRESH SESSION RECEIPT | `cargo test -p forge-gate -p forge-daemon` output from latest branch. |
+| 159 tests green | VERIFIED BY TEAM RECEIPT | 2026-09-02-night-governor: 110 forge-gate + 36 forge-daemon + 13 example tests. |
 
 ## Panel Mapping
 
@@ -61,5 +62,5 @@ Doctrine: no claim is shown as verified unless it has a receipt. When the receip
 
 One sentence:
 
-> A model can suggest a trade, but 13forge only submits it after deterministic gates approve the oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
+> A model can suggest a trade, but 13forge only submits it after deterministic gates approve the governor state, position-state DAG, oracle verdict, market purity, leg geometry, and max-loss ceiling; the strongest proof is the unsafe condor that was refused before the Alpaca CLI ever spawned.
 

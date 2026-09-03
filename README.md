@@ -54,7 +54,13 @@ Our core thesis for this hackathon: *no claim is shown as verified unless it has
 
 [**Print the UI/UX Demo Packet**](https://13forge-proof-portal.vercel.app/demo-portal/print.html)
 
+[**Source Repository**](https://github.com/deveraux-dev/AlpacaCOMP)
+
 *Demo video URL can be added after the final recording.*
+
+## Collaboration Note
+
+This submission is maintained from a collaborator lane: frontend demo portal, README, public docs, and printable proof materials. The Rust engine and live trading backend remain owned by the core repository maintainers; frontend copy mirrors backend receipts without editing backend code.
 
 > **13forge** is a deterministic execution airlock. It prevents LLMs from writing live option orders by forcing them to negotiate through a bicameral S13 state vector, which is then verified against market structure and margin-physics limits before Alpaca is ever touched.
 

@@ -1,0 +1,8 @@
+{
+  "repoUrl": "https://github.com/deveraux-dev/AlpacaCOMP",
+  "portalUrl": "https://13forge-proof-portal.vercel.app/demo-portal/",
+  "receiptMode": "Static evidence, no live order",
+  "gateSummary": "7 deterministic gates, with GovernorVent checked before every other refusal path.",
+  "testSummary": "159/159 tests: 110 forge-gate + 36 forge-daemon + 13 example tests",
+  "testReceipt": "Current receipt: 2026-09-02-night-governor"
+}

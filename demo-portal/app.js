@@ -17,6 +17,23 @@ window.addEventListener('scroll', revealContent);
 // Trigger once on init
 setTimeout(revealContent, 50);
 
+// Shared proof metadata. The portal and print packet both read this file so
+// teammate updates land in one place before deployment.
+async function hydrateProofData() {
+  try {
+    const response = await fetch('./proof-data.json', { cache: 'no-store' });
+    if (!response.ok) return;
+    const proof = await response.json();
+    document.querySelectorAll('[data-proof]').forEach((node) => {
+      const key = node.getAttribute('data-proof');
+      if (proof[key]) {
+        node.textContent = proof[key];
+      }
+    });
+  } catch (e) {}
+}
+hydrateProofData();
+
 
 // Theme toggle logic
 const themeBtn = document.getElementById('theme-toggle');

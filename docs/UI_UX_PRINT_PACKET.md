@@ -14,6 +14,7 @@ Why this option wins for the hackathon:
 - It explains the product in one action: an AI-proposed options trade is checked by deterministic Rust gates before Alpaca can receive it.
 - It keeps claims tied to receipts and avoids adding unverified live-performance language.
 - It is static and demo-safe: no credentials, no live balances, no broker call.
+- It uses `demo-portal/proof-data.json` as the single frontend data source for the portal and print packet.
 
 ## Screen Flow
 
@@ -23,12 +24,13 @@ Why this option wins for the hackathon:
 4. Verdict: `DispatchRefusal::MaxLossVeto`, broker not reached.
 5. Evidence: $2,525 max loss is above the $2,000 hard ceiling.
 6. Architecture: strategist, Rust safety gates, Alpaca.
-7. Claim board: live, verified, tested, and support claims are separated.
+7. Claim board: GovernorVent first, 159/159 tests, live, verified, tested, and support claims are separated.
 
 ## Print Checklist
 
 - Print the live portal from the browser in light mode.
 - Include the README page with the canonical proof portal link.
+- Include the public repo link: https://github.com/deveraux-dev/AlpacaCOMP
 - Include `docs/CLAIM_PROOF_MAP.md` when judges ask for receipt mapping.
 - Do not print or present option 1 or option 3 as separate demos.
 - Do not claim win rate, profit factor, or latency as verified unless a fresh receipt is added.
@@ -42,4 +44,3 @@ The interface uses a proof-first dashboard pattern:
 - Claims are grouped by confidence level.
 - Risk math is shown as a compact equation.
 - Secondary details stay below the replay so the first viewport stays demo-ready.
-

@@ -12,19 +12,21 @@ It is not presented as production brokerage software. The demonstrated environme
 
 `dispatch_spread` checks these conditions in order before broker submission:
 
-1. legal position-state transition
-2. authorized oracle verdict
-3. accepted market-stability band
-4. finite spread geometry
-5. maximum loss within the 2 percent ceiling
-6. structured Alpaca multi-leg submission through standard input
+1. GovernorVent circuit-breaker state
+2. legal position-state transition
+3. authorized oracle verdict
+4. accepted market-stability band
+5. finite spread geometry
+6. maximum loss within the 2 percent ceiling
+7. structured Alpaca multi-leg submission through standard input
 
-The first five items are checks. The sixth is the destination reached only after all checks pass.
+The first six items are gates. The seventh is the destination reached only after all gates pass.
 
 ## Strongest Receipts
 
 | Behavior | Evidence |
 |---|---|
+| Governor VENT refuses before all other gates | `DispatchRefusal::GovernorVent` and `governor_vent_refuses_before_any_other_gate` |
 | Illegal position transition refuses first | `LIVE_ORDER_DAG.validate_path` and `open_on_top_of_open_is_refused_before_every_other_gate` |
 | Oversized spread is refused | `tonights_simmed_condor_trips_the_veto_on_100k` |
 | Credit price uses the Alpaca sign convention | `credit_entry_limit_price_is_negative_per_alpaca_mleg_convention` |
@@ -47,7 +49,7 @@ The first five items are checks. The sixth is the destination reached only after
 - The public demo is a static evidence replay, not a live trading dashboard.
 - Support modules such as the Merkle seal, Fredholm residue, and API pacer should not be described as live gates without a current path receipt.
 - Production readiness would require broader broker-error recovery, operational monitoring, security review, and long-running evidence.
-- Performance, P&L, latency, and test-count claims need fresh reproducible receipts before publication.
+- Performance, P&L, and latency claims need fresh reproducible receipts before publication; current team test receipt is 159/159.
 
 ## Recommendation
 

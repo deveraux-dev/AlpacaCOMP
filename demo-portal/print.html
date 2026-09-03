@@ -145,6 +145,7 @@
       <p class="eyebrow">13forge UI/UX packet</p>
       <h1>One proof-first demo for Alpaca AI Trading Agents judges</h1>
       <p class="muted">Canonical portal: <a href="https://13forge-proof-portal.vercel.app/demo-portal/">https://13forge-proof-portal.vercel.app/demo-portal/</a></p>
+      <p class="muted">Repository: <a data-proof="repoUrl" href="https://github.com/deveraux-dev/AlpacaCOMP">https://github.com/deveraux-dev/AlpacaCOMP</a></p>
       <div class="actions" aria-label="Packet actions">
         <a class="button primary" href="./index.html">Open portal</a>
         <a class="button" href="javascript:window.print()">Print packet</a>
@@ -156,14 +157,14 @@
       <p>Use option 2 as the only judge-facing demo. It is direct, static, receipt-backed, and focused on the feature that matters: an AI-proposed options trade cannot reach Alpaca until deterministic Rust gates allow it.</p>
       <div class="grid">
         <div class="card"><strong>What judges see first</strong><span class="muted">A replayable unsafe-trade refusal, not a landing page.</span></div>
-        <div class="card"><strong>What stays hidden</strong><span class="muted">Credentials, live order calls, private account details, and unsupported performance claims.</span></div>
+        <div class="card"><strong>Current backend receipt</strong><span class="muted" data-proof="testSummary">159/159 tests: 110 forge-gate + 36 forge-daemon + 13 example tests</span></div>
       </div>
     </section>
 
     <section>
       <h2>Demo Flow</h2>
       <div class="step"><span class="num">01</span><p><strong>Intro</strong><span class="muted">AI suggests the trade; Rust decides whether execution is allowed.</span></p></div>
-      <div class="step"><span class="num">02</span><p><strong>Replay</strong><span class="muted">Run the oversized iron condor through the visible gate sequence.</span></p></div>
+      <div class="step"><span class="num">02</span><p><strong>Replay</strong><span class="muted" data-proof="gateSummary">7 deterministic gates, with GovernorVent checked before every other refusal path.</span></p></div>
       <div class="step"><span class="num">03</span><p><strong>Verdict</strong><span class="muted">The max-loss gate refuses before the Alpaca submission step is reached.</span></p></div>
       <div class="step"><span class="num">04</span><p><strong>Receipts</strong><span class="muted">Show the risk equation, typed refusal, price-sign test, and claim map.</span></p></div>
     </section>
@@ -182,11 +183,27 @@
       <ul>
         <li>Print this packet and the live portal in light mode.</li>
         <li>Use the README link as the public source of truth.</li>
+        <li>Introduce yourself as a collaborator on the UI/UX, demo portal, README, and printable proof materials.</li>
         <li>Bring `docs/CLAIM_PROOF_MAP.md` when judges ask for exact receipt mapping.</li>
         <li>Do not present option 1 or option 3 as separate demos.</li>
         <li>Do not describe win rate, profit factor, or latency as verified without fresh receipts.</li>
       </ul>
     </section>
   </main>
+  <script>
+    async function hydrateProofData() {
+      try {
+        const response = await fetch('./proof-data.json', { cache: 'no-store' });
+        if (!response.ok) return;
+        const proof = await response.json();
+        document.querySelectorAll('[data-proof]').forEach((node) => {
+          const key = node.getAttribute('data-proof');
+          if (proof[key]) node.textContent = proof[key];
+          if (key === 'repoUrl' && proof.repoUrl) node.setAttribute('href', proof.repoUrl);
+        });
+      } catch (e) {}
+    }
+    hydrateProofData();
+  </script>
 </body>
 </html>

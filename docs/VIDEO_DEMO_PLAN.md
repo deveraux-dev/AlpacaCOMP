@@ -22,9 +22,9 @@ Show the portal headline and the three-step summary: AI suggests, Rust verifies,
 
 Narration:
 
-> Before Alpaca is contacted, the order must pass position-state, model-verdict, market-stability, trade-structure, and maximum-loss checks.
+> Before Alpaca is contacted, the order must pass the governor circuit breaker, position-state, model-verdict, market-stability, trade-structure, and maximum-loss checks.
 
-Show the six-row safe order path. Make clear that Alpaca submission is the destination, not another safety gate.
+Show the seven-step safe order path. Make clear that Alpaca submission is the destination reached only after all six refusal gates pass.
 
 ### 30-65 seconds: The Proof
 
@@ -60,7 +60,7 @@ End on the project name, public repository, and deployed portal URL.
 - Hide bookmarks, notifications, account identifiers, credentials, and unrelated tabs.
 - Use one continuous portal walkthrough; avoid terminal switching unless Sean supplies a clean fresh receipt.
 - Confirm the replay ends with **Order refused before Alpaca** and **Not reached**.
-- Keep unreceipted win-rate, profit-factor, latency, and test-count figures off screen.
+- Keep unreceipted win-rate, profit-factor, and latency figures off screen. The current test receipt is 159/159: 110 forge-gate, 36 forge-daemon, and 13 example tests.
 - Export one clean 1080p MP4 and verify audio before submission.
 
 ## Optional Evidence Inserts

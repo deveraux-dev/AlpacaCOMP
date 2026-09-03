@@ -38,6 +38,7 @@
     <div class="header-actions">
       <a class="header-link" href="../docs/CLAIM_PROOF_MAP.md">Proof map</a>
       <a class="header-link" href="./print.html">Print packet</a>
+      <a class="header-link" href="https://github.com/deveraux-dev/AlpacaCOMP">GitHub</a>
       <span class="engine-pill">
         <span class="pulse-dot"></span>
         ENGINE SYNCING...
@@ -75,7 +76,7 @@
           <p class="section-label">Decision replay</p>
           <h2 id="replay-title">Oversized iron condor</h2>
         </div>
-        <span class="mode-badge">Static evidence, no live order</span>
+        <span class="mode-badge" data-proof="receiptMode">Static evidence, no live order</span>
       </div>
 
       <div class="replay-grid">
@@ -195,7 +196,7 @@
       <div class="architecture-flow">
         <article class="panel-box"><span class="flow-number">1</span><h3>Strategist</h3><p>Produces a constrained trade thesis.</p></article>
         <span class="flow-arrow" aria-hidden="true">→</span>
-        <article class="panel-box control-node"><span class="flow-number">2</span><h3>Rust safety gates</h3><p>6 deterministic checks + broker destination.</p></article>
+        <article class="panel-box control-node"><span class="flow-number">2</span><h3>Rust safety gates</h3><p data-proof="gateSummary">7 deterministic gates, with GovernorVent checked before every other refusal path.</p></article>
         <span class="flow-arrow" aria-hidden="true">→</span>
         <article class="panel-box"><span class="flow-number">3</span><h3>Alpaca</h3><p>Receives a structured order only after every gate passes.</p></article>
       </div>
@@ -221,6 +222,7 @@
         </div>
         <div class="claim-row"><span class="claim-state live-state">Live</span><strong>Governor VENT blocks dispatch before the other checks</strong><span>Backed by governor_vent_refuses_before_any_other_gate test</span></div>
         <div class="claim-row"><span class="claim-state live-state">Live</span><strong>State, risk, and structure checks control the order path</strong><span>Backed by dispatch code and refusal tests</span></div>
+        <div class="claim-row"><span class="claim-state verified-state">Verified</span><strong data-proof="testSummary">159/159 tests: 110 forge-gate + 36 forge-daemon + 13 example tests</strong><span data-proof="testReceipt">Current receipt: 2026-09-02-night-governor</span></div>
         <div class="claim-row"><span class="claim-state verified-state">Verified</span><strong>Credit prices serialize as negative values</strong><span>Backed by an Alpaca convention test</span></div>
         <div class="claim-row"><span class="claim-state tested-state">Tested</span><strong>Strategy uses quoted strikes and pulls wings inside the cap</strong><span>Backed by strategy tests</span></div>
         <div class="claim-row"><span class="claim-state support-state">Support</span><strong>Merkle seal, Fredholm residue, API pacer</strong><span>Built components, not presented as live gates</span></div>
