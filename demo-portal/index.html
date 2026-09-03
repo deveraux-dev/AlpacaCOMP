@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Replay the deterministic safety checks that stopped an unsafe options trade before it reached Alpaca.">
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="./assets/brand/13forge-favicon.svg" type="image/svg+xml">
   <title>13forge | Proof Portal</title>
   <script>
     // Safe, non-blocking theme initialization to prevent FOUC
@@ -27,7 +27,10 @@
 
   <header class="site-header">
     <a class="brand" href="#top" aria-label="13forge proof portal home">
-      <span class="brand-mark" aria-hidden="true">13</span>
+      <picture class="brand-symbol" aria-hidden="true">
+        <source media="(prefers-color-scheme: dark)" srcset="./assets/brand/13forge-mark-dark.svg">
+        <img class="brand-symbol-image" src="./assets/brand/13forge-mark.svg" alt="">
+      </picture>
       <span>13forge</span>
     </a>
     <nav aria-label="Portal navigation">

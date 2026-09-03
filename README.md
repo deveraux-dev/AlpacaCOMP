@@ -1,6 +1,9 @@
 <div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./demo-portal/assets/brand/13forge-logo-dark.svg">
+    <img src="./demo-portal/assets/brand/13forge-logo.svg" width="260" alt="13forge">
+  </picture>
 
-  <h1>13forge</h1>
   <p><i>"Sub-millisecond, zero-allocation execution engine, deterministic control loop — but I'm terrible with money."</i></p>
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
