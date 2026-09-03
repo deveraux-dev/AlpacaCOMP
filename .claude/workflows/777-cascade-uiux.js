@@ -10,14 +10,14 @@ export const meta = {
 }
 
 // Optional: pass the front-end root as args (string path). Falls back to repo root scan.
-const FRONTEND_ROOT = (typeof args === 'string' && args.length > 0) ? args : '.'
+const FRONTEND_ROOT = (typeof args === 'string' && args.length > 0) ? args : 'F:\\AlpacaCOMP'
 
-const GOAL = `Sean's partner is building the judge-facing front end (demo UI/dashboard) for the Alpaca AI Trading Agents Hackathon submission (deadline 2026-09-04T09:00 MDT). The engine behind it has a Rust no_std gate core and a test-pinned dispatch path: position-state DAG -> oracle verdict veto -> market-stability band -> leg-geometry check -> 2%-max-loss veto -> CLI subprocess (crates/forge-daemon/src/dispatch.rs). Test totals and account details require fresh receipts before display.
+const GOAL = `Sean's partner is building the judge-facing front end (demo UI/dashboard) for the Alpaca AI Trading Agents Hackathon submission (deadline 2026-09-04T09:00 MDT). The engine behind it is real and test-pinned: a Rust no_std gate lattice where every order passes, in order, position-state DAG -> oracle verdict veto -> market-purity chaos gate -> leg-geometry check -> 2%-max-loss veto -> CLI subprocess (crates/forge-daemon/src/dispatch.rs), 118 tests green, paper account PA3FMNQT9WDW.
 
 THE ZERO-CLAIMS LAW governs this UI: every number, state, and badge shown on screen MUST trace to a machine receipt (Alpaca API response, .forge/proof-ledger.tsv entry, test output, or live gate refusal). No invented values, no aspirational copy, no feature named on screen that is not wired in code. The strongest demo asset is the machine REFUSING a bad order with real numbers (the $2,525 > $2,000 max-loss veto) -- refusals are content, not errors to hide.
 
 Front-end root under review: ${FRONTEND_ROOT}
-Engine ground truth (read-only, cite file:line): crates/forge-gate/src/, crates/forge-daemon/src/dispatch.rs, CLAUDE.md (architect_reprime ledger), .forge/proof-ledger.tsv
+Engine ground truth (read-only, cite file:line): F:\\AlpacaCOMP\\crates\\forge-gate\\src\\, F:\\AlpacaCOMP\\crates\\forge-daemon\\src\\dispatch.rs, F:\\AlpacaCOMP\\CLAUDE.md (architect_reprime ledger), F:\\AlpacaCOMP\\.forge\\proof-ledger.tsv
 
 F01 (verify before citing) and F09 (name gaps plainly) are mandatory. If the front end does not exist yet or is a stub, say so plainly -- the cascade then designs it from zero rather than reviewing it.`
 
@@ -29,7 +29,7 @@ You are the K00 recon pass for a 777-cascade. Produce ONE shared ground-truth do
 
 Inventory (file:line citations mandatory; a path that does not exist gets named as absent, never assumed):
 1. The front-end root: what actually exists -- framework, pages/components, data flow, what values each screen element displays and WHERE each value comes from (API call, hardcode, invention).
-2. The engine's real displayable surface: every receipt-producing seam -- DispatchRefusal variants, the current NormalizedIpr acceptance band, the five checks plus broker submission in dispatch_spread, proof-ledger.tsv row format, and any freshly receipted read-only account fields.
+2. The engine's real displayable surface: every receipt-producing seam -- DispatchRefusal variants, NormalizedIpr permyriad readings (landmark>=7500/diffuse<2500), the six-gate order in dispatch_spread, proof-ledger.tsv row format, live GET /v2/account fields.
 3. The judging context from CLAUDE.md: P&L is the scored objective; the submission needs a demo URL, video, write-up.
 
 Output: one structured document, sectioned as above, ending with a GAPS section naming everything the demo needs that neither the front end nor the engine currently surfaces.`,
@@ -39,11 +39,11 @@ Output: one structured document, sectioned as above, ending with a GAPS section 
 phase('Students')
 const ARCHETYPES = [
   { name: 'Skeptic', brief: 'Receipt audit. For EVERY value/state/badge the UI shows (or plans to show), trace its source. Flag anything that could ever render an invented, stale, or hardcoded number as if live. A UI element with no receipt path is an overclaim in pixels -- name each one.' },
-  { name: 'Builder', brief: 'What is the minimum real screen that ships before 2026-09-04T09:00 MDT? Name the concrete gap between what exists and ONE honest demo view: a recorded proposal, gate chain with pass/refuse states, and linked proof sources. Do not require live account data without a fresh receipt. Find the cheapest real stack given what is already in the repo.' },
+  { name: 'Builder', brief: 'What is the minimum real screen that ships before 2026-09-04T09:00 MDT? Name the concrete gap between what exists and ONE honest demo view: live account equity, purity meter, gate chain with pass/refuse states, and the sealed decision log. Cheapest real stack given what is already in the repo.' },
   { name: 'Scout', brief: 'Prior art. What do winning hackathon trading demos and Alpaca\'s own dashboard actually show judges? What do judges of AI-agent hackathons reward on screen (autonomy evidence, P&L, safety)? Cite real examples where possible; mark inference as [UNVERIFIED].' },
-  { name: 'DevilsAdvocate', brief: 'Argue the dashboard is the wrong artifact entirely for THIS submission: a short recording of the proof portal or terminal -- five checks, broker destination, then the oversized condor being REFUSED with real dollar numbers -- may beat a larger webpage. Where does a rushed UI actively hurt (bugs on camera, implied features, judge distrust)?' },
-  { name: 'AlternativeTheorist', brief: 'Reframe: the UI is not a live view, it is a recorded evidence REPLAY. Every frame must trace to a test, proof-ledger.tsv row, or broker receipt. Zero live-wiring risk, zero invented pixels, and it works offline in the video. Keep Merkle sealing scoped as support unless the current path proves more.' },
-  { name: 'Bridge', brief: 'The judge slot. A judge gives this 3 minutes and may not know options trading. What must they SEE to understand in 30 seconds that (a) the agent proposes autonomously, (b) deterministic gates can refuse it, and (c) broker execution is separated from model output? Show P&L only with a fresh receipt. Replace trading jargon with plain labels.' },
+  { name: 'DevilsAdvocate', brief: 'Argue the dashboard is the wrong artifact entirely for THIS submission: a 3-minute screen recording of the terminal -- live order passing six gates, then the oversized condor being REFUSED with real dollar numbers -- may beat a webpage built in 2 days. Where does a rushed UI actively hurt (bugs on camera, implied features, judge distrust)?' },
+  { name: 'AlternativeTheorist', brief: 'Reframe: the UI is not a live view, it is a REPLAY of the Merkle-sealed decision ledger -- a scrubber over proof-ledger.tsv rows where every frame is a receipt by construction. Zero live-wiring risk, zero invented pixels, works offline in the video. Ground it in the actual ledger row format and what forge-gate merkle_seal actually chains.' },
+  { name: 'Bridge', brief: 'The judge slot. A judge gives this 3 minutes and may not know options trading. What must they SEE to understand in 30 seconds that (a) the agent trades autonomously, (b) a deterministic gate lattice can refuse the model, (c) P&L is real? Where does trading jargon on screen (condor, permyriad, mleg) lose them, and what plain label replaces each?' },
   { name: 'Economist', brief: 'Cost/sequencing against the hard deadline. Rank every proposed screen element by demo-impact per build-hour. Name the single highest-risk item (most likely to break on camera) and what gets cut first. The write-up and video are ALSO unbuilt and share the same clock -- account for that.' },
 ]
 

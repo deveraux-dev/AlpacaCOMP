@@ -50,17 +50,17 @@ def main():
 
     # ── Left column: the deterministic no_std core ─────────────────────────
     panel(draw, (40, 70, 1180, 740),
-          "FORGE-GATE  #![no_std] · deny(unsafe) · RECEIPT-BACKED CONTROL CORE",
+          "FORGE-GATE  #![no_std] · deny(unsafe) · zero heap · lock-free · 90/90 TESTS GREEN",
           border=BOX_CYAN, font=font_header)
 
     panel(draw, (60, 100, 1160, 230),
-          "GATE LATTICE — EVERY ORDER CLEARS ALL FIVE CHECKS", border=BOX_MUTED, font=font_header)
+          "GATE LATTICE — EVERY ORDER CLEARS ALL FIVE OR DIES (1.5 us)", border=BOX_MUTED, font=font_header)
     layer1 = [
         ("ORDER-STATE DAG", "Illegal transitions clamp\nto ORDER_REJECT", GREEN_COLOR),
+        ("RISK ROUTER", "Exposure bound · margin trip\n2%-of-balance max-loss veto", GOLD_COLOR),
         ("ORACLE ARBITER", "Dual S13[i8;13] Bull/Bear\nconsensus or hard veto", BOX_CYAN),
-        ("MARKET STABILITY", "N x IPR acceptance band\nout-of-band = refuse", PURPLE_COLOR),
-        ("LEG GEOMETRY", "Finite, quoted option legs\nmalformed spread = refuse", GOLD_COLOR),
-        ("MAX-LOSS CEILING", "2%-of-balance hard veto\nover limit = refuse", RED_COLOR),
+        ("MARKET PURITY", "N x IPR permyriad [0,10000]\ndiffuse book = refuse", PURPLE_COLOR),
+        ("MERKLE-MORIN SEAL", "SHA-256 root / 64B leaves\ntamper = RootMismatch", RED_COLOR),
     ]
     bx = 80
     for title, desc, color in layer1:
@@ -91,7 +91,7 @@ def main():
     draw.rectangle([80, 425, 1140, 475], fill=(18, 36, 58, 255), outline=BOX_MUTED, width=2)
     draw.text((100, 435), "FREDHOLM RESIDUE ENGINE (D = T + F + R): permyriad fixed-point resolvent, refuses non-convergence",
               fill=BOX_MUTED, font=font_mono_bold)
-    draw.text((100, 452), "MATH SUBSTRATE: permyriad market concentration + explicit bounded risk checks",
+    draw.text((100, 452), "MATH SUBSTRATE: exact integer permyriad everywhere · Black-Scholes greeks verified vs Hull + put-call parity",
               fill=TEXT_WHITE, font=font_small)
 
     panel(draw, (60, 510, 410, 720), "ALPACA CLI BRIDGE (STD SEAM)", border=GOLD_COLOR, font=font_header)
@@ -103,7 +103,7 @@ def main():
               fill=TEXT_WHITE, font=font_small)
 
     panel(draw, (800, 510, 1160, 720), "PROOF LEDGER (SEALED)", border=RED_COLOR, font=font_header)
-    draw.text((815, 540), "* every claim -> source -> receipt row\n* no VERIFIED badge without evidence\n* Merkle-Morin seal tooling exists\n* keep live-path claims separate\n  from support components\n* no credentials or account IDs\n  in public presentation assets",
+    draw.text((815, 540), "* every claim -> oracle -> receipt row\n* ladder: UNPROVEN->PROVEN->VERIFIED\n* Merkle-Morin session roots chain\n  the log: edit one row, break all\n* session root 2026-09-01:\n  1d93d6df3e995c2ddc116d59...\n* paper acct PA3FMNQT9WDW · $100k",
               fill=TEXT_WHITE, font=font_small)
 
     # ── Right column ───────────────────────────────────────────────────────
@@ -141,14 +141,14 @@ def main():
         ("--------------------------------------------------------------------------------", BOX_MUTED, font_small),
         ("* ZERO GENERATIVE LAW: model emits ternary thesis only; one auditable seam", TEXT_WHITE, font_body),
         ("* GATES: order DAG + risk router + dual-oracle S13 arbiter + N x IPR purity", TEXT_WHITE, font_body),
-        ("* RISK: fixed five-check path; max-loss veto is the final hard ceiling", TEXT_WHITE, font_body),
+        ("* 1.5 us risk guardrail latency · exact permyriad integer math throughout", TEXT_WHITE, font_body),
         ("* MERKLE-MORIN SEAL: SHA-256 roots chain the decision ledger, tamper-evident", RED_COLOR, font_body),
         ("* EXECUTION: Alpaca official CLI, checksummed, subprocess-supervised", GREEN_COLOR, font_body),
-        ("* PROOF CASE: $2,525 max loss exceeds $2,000 ceiling; order refused", GOLD_COLOR, font_body),
-        ("* PAPER TRADING · public assets contain no credentials or account identifiers", TEXT_WHITE, font_body),
+        ("* LIVE 2026-09-01: SPY 762.15 · condor 795C/815C/719P/690P · $375.50 credit", GOLD_COLOR, font_body),
+        ("* PAPER ACCT PA3FMNQT9WDW · $100,000 · options level 3 · 105 tests green", TEXT_WHITE, font_body),
         ("--------------------------------------------------------------------------------", BOX_MUTED, font_small),
         ("BAKED BY PATEX GEOMETRIC TYPESETTING ENGINE", GOLD_COLOR, font_header),
-        ("No-Std Gate Core · Refuse-First Dispatch · Quoted Legs · S13 Ternary Lanes", BOX_MUTED, font_small),
+        ("Zero Heap Hotpath · Integer-Only Core · 3^5 = 243 Trit States · S13 Ternary Lanes", BOX_MUTED, font_small),
     ]
     ty = 525
     for text, color, fnt in tb:
