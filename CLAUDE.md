@@ -4,6 +4,8 @@
 
 &#x20;   <deadline\_mdt>2026-09-04T09:00:00</deadline\_mdt>
 
+&#x20;   <submission\_freeze date="2026-09-04" by="Sean, in-session">SUBMISSION SENT. Repo called done for the competition — do NOT git commit or git push from any session (Sean or collaborator) without Sean explicitly re-opening this in a NEW dated instruction below this line. A 10-agent claims-tightness audit ran this session (162 judge-facing claims extracted from README/WRITEUP.md/demo-portal/deck/pitch-script/CLAUDE.md, each independently re-derived against crates/ code+tests, not trusted from doc text): 131 CONFIRMED, 26 UNVERIFIED (mostly un-fetchable URLs + historical operational numbers, none load-bearing), 5 FALSE (all in this ledger's own stale entries, e.g. "api\_pacer/residue/merkle\_seal NOT wired" — superseded by later entries below — and the pre-permyriad watchdog thresholds already correctly disclaimed by hard\_constraints; zero FALSE claims in judge-facing docs). Mirror fast-forwarded to origin/main (ad4cc38, Sehrish's final deck/video/portal-copy commits, collaborator-lane only, crates/ untouched) then this ledger entry committed+pushed as the last commit of the competition window.</submission\_freeze>
+
 &#x20;   <current\_metrics>
 
 &#x20;       <metric name="audited\_win\_rate" value="55.4%" />
