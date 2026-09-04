@@ -15,7 +15,14 @@
 
 ## 🚀 Quick Links
 
-**[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[View Demo Print Packet](./demo-portal/print.html)** | **[Explore Source Code](https://github.com/deveraux-dev/AlpacaCOMP)**
+**[Watch Demo Video](https://youtu.be/IrLmPIXukyo)** | **[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[View Demo Print Packet](./demo-portal/print.html)** | **[Explore Source Code](https://github.com/deveraux-dev/AlpacaCOMP)**
+
+<div align="center">
+  <a href="https://youtu.be/IrLmPIXukyo">
+    <img src="https://img.youtube.com/vi/IrLmPIXukyo/maxresdefault.jpg" alt="Watch 13forge Demo" width="100%" style="border-radius: 8px;">
+  </a>
+</div>
+<br/>
 
 > **TL;DR:** An AI may suggest an options trade, but it never gets a direct path to the broker. 13forge rebuilds the order from quoted market data, runs seven deterministic safety gates, and refuses the trade if it breaches hard limits.
 
@@ -199,7 +206,11 @@ cargo run --example live_smoke -p forge-daemon
 
 This submission is maintained from a collaborator lane: frontend demo portal, README/docs, deployment preview, and presentation assets. The Rust engine, credentials, live trading behavior, and trading receipts remain owned by the core repository maintainers. Frontend copy mirrors backend receipts without editing backend code.
 
-*Demo video URL can be added after the final recording.*
+### 🎥 Final Hackathon Submission
+
+- **[Watch the 13forge Demo Video](https://youtu.be/IrLmPIXukyo)**
+- **[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)**
+- **[Explore GitHub Repository](https://github.com/deveraux-dev/AlpacaCOMP)**
 
 ---
 
