@@ -15,13 +15,26 @@
 
 ## 🚀 Quick Links
 
-**[Watch Demo Video](https://youtu.be/IrLmPIXukyo)** | **[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[View Demo Print Packet](./demo-portal/print.html)** | **[Explore Source Code](https://github.com/deveraux-dev/AlpacaCOMP)**
+**[Watch Pitch Presentation](https://youtu.be/YO1xjnEtoF4)** | **[Watch Technical Demo](https://youtu.be/IrLmPIXukyo)** | **[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[Explore Source Code](https://github.com/deveraux-dev/AlpacaCOMP)**
 
-<div align="center">
-  <a href="https://youtu.be/IrLmPIXukyo">
-    <img src="https://img.youtube.com/vi/IrLmPIXukyo/maxresdefault.jpg" alt="Watch 13forge Demo" width="100%" style="border-radius: 8px;">
-  </a>
-</div>
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/YO1xjnEtoF4">
+        <img src="https://img.youtube.com/vi/YO1xjnEtoF4/maxresdefault.jpg" alt="Watch the 13forge pitch presentation" width="100%">
+      </a>
+      <br>
+      <b>Pitch / Presentation Video</b>
+    </td>
+    <td width="50%" align="center">
+      <a href="https://youtu.be/IrLmPIXukyo">
+        <img src="https://img.youtube.com/vi/IrLmPIXukyo/maxresdefault.jpg" alt="Watch the 13forge live tech demo" width="100%">
+      </a>
+      <br>
+      <b>Live Tech Demo Video</b>
+    </td>
+  </tr>
+</table>
 <br/>
 
 > **TL;DR:** An AI may suggest an options trade, but it never gets a direct path to the broker. 13forge rebuilds the order from quoted market data, runs seven deterministic safety gates, and refuses the trade if it breaches hard limits.
@@ -208,7 +221,8 @@ This submission is maintained from a collaborator lane: frontend demo portal, RE
 
 ### 🎥 Final Hackathon Submission
 
-- **[Watch the 13forge Demo Video](https://youtu.be/IrLmPIXukyo)**
+- **[Watch Pitch Presentation (3 Minutes)](https://youtu.be/YO1xjnEtoF4)**
+- **[Watch Technical Demo (1.5 Minutes)](https://youtu.be/IrLmPIXukyo)**
 - **[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)**
 - **[Explore GitHub Repository](https://github.com/deveraux-dev/AlpacaCOMP)**
 
