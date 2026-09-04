@@ -95,7 +95,8 @@ The helper mode adds a small recording slate and supports these keys:
 
 - Live portal: `https://13forge-proof-portal.vercel.app/demo-portal/`
 - Repository: `https://github.com/deveraux-dev/AlpacaCOMP`
-- Video demo: add the final YouTube/Vimeo/Devpost URL after export.
+- PPT pitch video: `https://youtu.be/YO1xjnEtoF4`
+- Live tech demo video: `https://youtu.be/IrLmPIXukyo`
 
 Upload the final video early and verify every link in an incognito/private browser.
 

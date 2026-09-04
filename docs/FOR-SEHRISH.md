@@ -32,4 +32,4 @@ $2,525 maximum loss > $2,000 account ceiling
 Result: refused before Alpaca submission
 ```
 
-The deadline is Thursday, September 4 at 8:00 PM Pakistan time.
+Final submission focus: keep the README, proof portal, pitch video, technical demo, and claim map aligned around this single refusal proof.

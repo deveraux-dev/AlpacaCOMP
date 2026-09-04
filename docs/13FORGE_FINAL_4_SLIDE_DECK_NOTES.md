@@ -60,7 +60,7 @@ That is the reason to remember 13forge: it keeps the creativity of AI upstream, 
 
 - Do not claim guaranteed safety.
 - Do not show win rate, profit factor, or latency as verified unless a fresh receipt is added.
-- Do not claim Merkle seal, Fredholm residue, or API pacer as live execution gates unless the live path proves it.
+- Do not claim Merkle seal, Fredholm residue, or API pacer as execution gates unless current dispatch evidence proves it.
 - Do not present the static portal replay as live account trading.
 
 ## Judge Review
