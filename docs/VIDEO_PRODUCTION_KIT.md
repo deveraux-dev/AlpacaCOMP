@@ -12,7 +12,7 @@ This is the fast path for producing the final hackathon demo.
 6. Add captions from `docs/video-demo-captions.srt`.
 7. Export the final 1080p MP4.
 8. Upload the MP4 to the hackathon-required video host.
-9. Verify `README.md` and `demo-portal/proof-data.json` both use the final video link: `https://youtu.be/IrLmPIXukyo`.
+9. Verify `README.md` and `demo-portal/proof-data.json` both use the final video links: PPT pitch `https://youtu.be/YO1xjnEtoF4` and live tech demo `https://youtu.be/IrLmPIXukyo`.
 
 Do not stretch a short capture to fill the whole narration. The screen recording is the proof; Canva is the polish layer.
 
@@ -128,10 +128,12 @@ Constraints:
 The final uploaded demo is:
 
 ```md
-**Demo video:** [Watch the 13forge proof replay](https://youtu.be/IrLmPIXukyo)
+**PPT pitch video:** [Watch the 13forge presentation](https://youtu.be/YO1xjnEtoF4)
+
+**Live tech demo video:** [Watch the 13forge proof replay](https://youtu.be/IrLmPIXukyo)
 ```
 
-`README.md` and `demo-portal/proof-data.json` should both point to `https://youtu.be/IrLmPIXukyo`.
+`README.md` and `demo-portal/proof-data.json` should both point to `https://youtu.be/YO1xjnEtoF4` for the PPT pitch and `https://youtu.be/IrLmPIXukyo` for the live tech demo.
 
 ## Edit Checklist
 

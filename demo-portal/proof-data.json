@@ -2,6 +2,7 @@
   "repoUrl": "https://github.com/deveraux-dev/AlpacaCOMP",
   "portalUrl": "https://13forge-proof-portal.vercel.app/demo-portal/",
   "recordingUrl": "https://13forge-proof-portal.vercel.app/demo-portal/?recording=1",
+  "pitchVideoUrl": "https://youtu.be/YO1xjnEtoF4",
   "videoDemoUrl": "https://youtu.be/IrLmPIXukyo",
   "receiptMode": "Static evidence, no live order",
   "gateSummary": "7 deterministic gates, with GovernorVent checked before every other refusal path.",

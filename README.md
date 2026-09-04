@@ -13,9 +13,11 @@
   [![Broker API](https://img.shields.io/badge/Broker-Alpaca_V2-34D399?style=for-the-badge)](https://alpaca.markets/)
 </div>
 
-## 🚀 Quick Links
+## 🚀 Start Here
 
-**[Watch Pitch Presentation](https://youtu.be/YO1xjnEtoF4)** | **[Watch Technical Demo](https://youtu.be/IrLmPIXukyo)** | **[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[Explore Source Code](https://github.com/deveraux-dev/AlpacaCOMP)**
+**[1. Watch the PPT Pitch Video (3 min)](https://youtu.be/YO1xjnEtoF4)** | **[2. Watch the Live Tech Demo (1.5 min)](https://youtu.be/IrLmPIXukyo)** | **[3. Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)** | **[4. Explore Source Code](https://github.com/deveraux-dev/AlpacaCOMP)**
+
+For judges: watch the short PPT pitch first for the plain-English story, then watch the live tech demo to see the refusal proof.
 
 <table>
   <tr>
@@ -24,7 +26,7 @@
         <img src="https://img.youtube.com/vi/YO1xjnEtoF4/maxresdefault.jpg" alt="Watch the 13forge pitch presentation" width="100%">
       </a>
       <br>
-      <b>Pitch / Presentation Video</b>
+      <b>PPT Pitch / Presentation Video</b>
     </td>
     <td width="50%" align="center">
       <a href="https://youtu.be/IrLmPIXukyo">
@@ -63,7 +65,7 @@ Generative models are phenomenal at discovering ideas, but they are not a safe p
 - 🧠 **Smart Extraction:** The model emits a constrained thesis, not a raw order.
 - 🏗️ **Deterministic Assembly:** Strategy code uses real `ChainQuote` data to build the spread.
 - 🛑 **Strict Validation:** Seven refuse-by-default checks run before any dispatch occurs.
-- 🔐 **Guaranteed Safety:** Only a mathematically bounded result can reach the Alpaca CLI.
+- 🔐 **Bounded Dispatch:** Only a checked, mathematically bounded result can reach the Alpaca CLI.
 
 The experience is designed to make a technical safety property feel obvious: **the system proves what it refused, why it refused it, and what did not happen next.**
 
@@ -221,7 +223,7 @@ This submission is maintained from a collaborator lane: frontend demo portal, RE
 
 ### 🎥 Final Hackathon Submission
 
-- **[Watch Pitch Presentation (3 Minutes)](https://youtu.be/YO1xjnEtoF4)**
+- **[Watch PPT Pitch / Presentation Video (3 Minutes)](https://youtu.be/YO1xjnEtoF4)**
 - **[Watch Technical Demo (1.5 Minutes)](https://youtu.be/IrLmPIXukyo)**
 - **[Launch Live Demo Portal](https://13forge-proof-portal.vercel.app/demo-portal/)**
 - **[Explore GitHub Repository](https://github.com/deveraux-dev/AlpacaCOMP)**
