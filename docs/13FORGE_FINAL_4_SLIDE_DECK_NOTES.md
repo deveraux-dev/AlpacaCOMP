@@ -27,7 +27,7 @@ Now introduce the product experience. 13forge is not another trading chatbot. It
 
 ### Slide 3
 
-This is the technical proof slide. The important architecture is the separation of authority: suggestion, market data, safety gates, and Alpaca submission are not the same step. The live path includes governor, position-state, oracle verdict, market purity, leg geometry, max-loss, and then broker submission through the Alpaca CLI/API path.
+This is the technical proof slide. The important architecture is the separation of authority: suggestion, market data, safety gates, and Alpaca submission are not the same step. The implemented dispatch path includes governor, position-state, oracle verdict, market purity, leg geometry, max-loss, and then broker submission through the Alpaca CLI/API path.
 
 ### Slide 4
 
