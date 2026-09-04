@@ -95,8 +95,8 @@ impl RegimeRouter {
             if w > 0.0 {
                 pos_counts[rid] += 1;
             }
-            for d in 0..D_MODEL {
-                votes[rid][d] += w * p.query_i8[d] as f32;
+            for (vote, &q) in votes[rid].iter_mut().zip(p.query_i8.iter()) {
+                *vote += w * q as f32;
             }
         }
 
@@ -116,8 +116,8 @@ impl RegimeRouter {
 
     pub fn record_counts(&self) -> [usize; NUM_REGIMES] {
         let mut out = [0usize; NUM_REGIMES];
-        for i in 0..NUM_REGIMES {
-            out[i] = self.centroids[i].record_count;
+        for (slot, c) in out.iter_mut().zip(self.centroids.iter()) {
+            *slot = c.record_count;
         }
         out
     }
@@ -327,8 +327,8 @@ mod tests {
     #[test]
     fn binarize_chunk_packing() {
         let mut x = [0i8; D_MODEL];
-        for i in 0..D_MODEL {
-            x[i] = if i % 2 == 0 { 1 } else { -1 };
+        for (i, slot) in x.iter_mut().enumerate() {
+            *slot = if i % 2 == 0 { 1 } else { -1 };
         }
         let bits = binarize_i8(&x);
         for &b in &bits {

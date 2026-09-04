@@ -32,7 +32,7 @@ mod integration {
         dag.apply_order_mask(current_state, &mut scores);
         let transition_allowed = scores
             .get(candidate_state as usize)
-            .map_or(false, |&s| s != ORDER_REJECT);
+            .is_some_and(|&s| s != ORDER_REJECT);
 
         transition_allowed && risk.evaluate_state_safety(exposure, 1, false)
     }

@@ -57,8 +57,8 @@ impl<const N: usize> Field5D<N> {
         let mut g = [0i64; N];
         for i in 0..N {
             let mut coupled: i128 = 0;
-            for j in 0..N {
-                coupled += scale(self.m[i][j], f[j]);
+            for (m_ij, &f_j) in self.m[i].iter().zip(f.iter()) {
+                coupled += scale(*m_ij, f_j);
             }
             g[i] = f[i] - coupled as i64;
         }
@@ -74,8 +74,8 @@ impl<const N: usize> Field5D<N> {
             let mut next = [0i64; N];
             for i in 0..N {
                 let mut coupled: i128 = 0;
-                for j in 0..N {
-                    coupled += scale(self.m[i][j], f[j]);
+                for (m_ij, &f_j) in self.m[i].iter().zip(f.iter()) {
+                    coupled += scale(*m_ij, f_j);
                 }
                 next[i] = g[i] + coupled as i64;
             }

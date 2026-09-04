@@ -181,11 +181,11 @@ fn main() {
     let tick_ms: u64 = std::env::var("CHAOS_TICK_MS").ok().and_then(|v| v.parse().ok()).unwrap_or(500);
 
     eprintln!(
-        "[chaos_monkey] replaying {} gate scenarios{}, dead CLI only, no live order ever reaches Alpaca",
+        "[chaos_monkey] replaying {} gate scenarios{}, purity floor {} pmy, dead CLI only, no live order ever reaches Alpaca",
         SCENARIOS.len(),
-        max_ticks.map(|t| format!(", {t} ticks then exit")).unwrap_or_default()
+        max_ticks.map(|t| format!(", {t} ticks then exit")).unwrap_or_default(),
+        CHAIN_PURITY_FLOOR_PMY
     );
-    assert!(CHAIN_PURITY_FLOOR_PMY > 0, "band constant reachable from this binary");
 
     let mut logs: Vec<ChaosLog> = Vec::new();
     let mut gates_tested: u64 = 0;

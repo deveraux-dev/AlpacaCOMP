@@ -155,7 +155,7 @@ pub fn dispatch_spread(
     }
 
     let body = mleg_body(root, yymmdd, legs, qty, limit_price);
-    cli.run_with_stdin(creds, &["api", "POST", "/v2/orders", "--body", "@-"], body.as_bytes())
+    cli.run_with_stdin(creds, &["api", "POST", "/v2/orders"], body.as_bytes())
         .map_err(|e| refuse(health, DispatchRefusal::Cli(e)))
 }
 
@@ -385,7 +385,7 @@ mod tests {
     #[test]
     fn calm_book_sits_inside_the_chain_purity_band() {
         let p = calm_book().pmy;
-        assert!(p >= CHAIN_PURITY_FLOOR_PMY && p <= CHAIN_PURITY_CEILING_PMY, "calm fixture pmy={p}");
+        assert!((CHAIN_PURITY_FLOOR_PMY..=CHAIN_PURITY_CEILING_PMY).contains(&p), "calm fixture pmy={p}");
     }
 
     #[test]

@@ -39,11 +39,16 @@ pub struct MarketPoint5D {
 pub fn collapse_market_to_query(p: MarketPoint5D) -> [i8; D_MODEL] {
     let mut q = [-1i8; D_MODEL];
 
-    thermometer_band(p.moneyness_pmy, -10_000, 10_000, &mut q[0 * BAND_SLOTS..1 * BAND_SLOTS]);
-    thermometer_band(p.delta_pmy, -10_000, 10_000, &mut q[1 * BAND_SLOTS..2 * BAND_SLOTS]);
-    thermometer_band(p.depth_pmy as i32, 0, 10_000, &mut q[2 * BAND_SLOTS..3 * BAND_SLOTS]);
-    thermometer_band(p.iv_skew_pmy, -10_000, 10_000, &mut q[3 * BAND_SLOTS..4 * BAND_SLOTS]);
-    thermometer_band(p.dte_days, 0, DTE_MAX_DAYS, &mut q[4 * BAND_SLOTS..5 * BAND_SLOTS]);
+    let dims = [
+        (p.moneyness_pmy, -10_000, 10_000),
+        (p.delta_pmy, -10_000, 10_000),
+        (p.depth_pmy as i32, 0, 10_000),
+        (p.iv_skew_pmy, -10_000, 10_000),
+        (p.dte_days, 0, DTE_MAX_DAYS),
+    ];
+    for (band, &(value, lo, hi)) in q.chunks_exact_mut(BAND_SLOTS).zip(dims.iter()) {
+        thermometer_band(value, lo, hi, band);
+    }
 
     q
 }

@@ -74,7 +74,7 @@ pub fn select_strategy(
 /// the snapshot is empty OR the nearest available delta is too far from
 /// `target` to honestly call it that leg — the polysynthetic assembly rule:
 /// a missing mandatory component aborts the build, it never substitutes.
-fn nearest_call_delta<'a>(quotes: &'a [ChainQuote], target: f64, max_deviation: f64) -> Option<&'a ChainQuote> {
+fn nearest_call_delta(quotes: &[ChainQuote], target: f64, max_deviation: f64) -> Option<&ChainQuote> {
     quotes
         .iter()
         .filter(|q| q.call_delta > 0.0)
@@ -89,7 +89,7 @@ fn nearest_call_delta<'a>(quotes: &'a [ChainQuote], target: f64, max_deviation: 
 /// Find the quote whose |put delta| is nearest `target`, among quotes with a
 /// negative (OTM put) delta, and within `max_deviation` of it. Same
 /// structural-rigidity rule as [`nearest_call_delta`].
-fn nearest_put_delta<'a>(quotes: &'a [ChainQuote], target: f64, max_deviation: f64) -> Option<&'a ChainQuote> {
+fn nearest_put_delta(quotes: &[ChainQuote], target: f64, max_deviation: f64) -> Option<&ChainQuote> {
     quotes
         .iter()
         .filter(|q| q.put_delta < 0.0)

@@ -199,7 +199,7 @@ fn governor_loop(health: Arc<AlpacaDaemonHealth>) {
                         metrics.margin_to_threshold * 100.0, metrics.acceleration);
                 }
                 LiquidationRisk::Caution => {
-                    if tick % 10 == 0 {
+                    if tick.is_multiple_of(10) {
                         eprintln!("[governor] liquidation caution: margin={:.2}%", metrics.margin_to_threshold * 100.0);
                     }
                 }
@@ -219,7 +219,7 @@ fn governor_loop(health: Arc<AlpacaDaemonHealth>) {
         trinary = score.trinary_state();
         health.trinary_state.store(trinary as i8, Ordering::Relaxed);
 
-        if tick % 60 == 0 {
+        if tick.is_multiple_of(60) {
             let state_str = match trinary {
                 TrinaryState::Accumulate => "+1 ACCUMULATE (normal trading)",
                 TrinaryState::Hold => "0 HOLD (coasting, no new orders)",
