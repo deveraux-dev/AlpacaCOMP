@@ -138,3 +138,47 @@ async function runReplay() {
 runButton.addEventListener('click', runReplay);
 resetButton.addEventListener('click', resetReplay);
 resetReplay();
+
+// Optional capture helper. This only appears when the portal is opened with
+// ?recording=1, keeping the normal judge-facing demo clean.
+function enableRecordingMode() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has('recording')) return;
+
+  document.body.classList.add('recording-mode');
+
+  const slate = document.createElement('aside');
+  slate.className = 'recording-slate';
+  slate.setAttribute('aria-label', 'Recording helper');
+  slate.innerHTML = `
+    <strong>REC MODE</strong>
+    <span>1 Intro</span>
+    <span>2 Replay</span>
+    <span>3 Run</span>
+    <span>4 Proof</span>
+    <span>5 System</span>
+    <span>Esc Hide</span>
+  `;
+  document.body.appendChild(slate);
+
+  const jumpTo = (selector) => {
+    const target = document.querySelector(selector);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === '1') jumpTo('#top');
+    if (event.key === '2') jumpTo('#proof-replay');
+    if (event.key === '3') runReplay();
+    if (event.key === '4') jumpTo('#evidence');
+    if (event.key === '5') jumpTo('#architecture');
+    if (event.key === 'Escape') slate.classList.toggle('is-hidden');
+  });
+
+  if (params.has('autoplay')) {
+    window.setTimeout(() => jumpTo('#proof-replay'), 1800);
+    window.setTimeout(() => runReplay(), 3200);
+  }
+}
+
+enableRecordingMode();

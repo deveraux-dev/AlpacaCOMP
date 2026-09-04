@@ -568,6 +568,41 @@ footer strong { color: var(--ink); }
 footer p { max-width: 570px; text-align: right; }
 :focus-visible { outline: 3px solid rgba(64, 169, 255, 0.38); outline-offset: 3px; }
 
+.recording-mode .site-header {
+  position: static;
+}
+
+.recording-slate {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 36px);
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.recording-slate strong {
+  color: var(--red);
+  font-size: 12px;
+}
+
+.recording-slate span {
+  white-space: nowrap;
+}
+
+.recording-slate.is-hidden {
+  display: none;
+}
+
 @media (max-width: 880px) {
   .site-header { grid-template-columns: 1fr auto; }
   nav { display: none; }
@@ -613,6 +648,7 @@ footer p { max-width: 570px; text-align: right; }
   footer { flex-direction: column; }
   footer p { text-align: left; }
   .gov-states { flex-wrap: wrap; }
+  .recording-slate { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
